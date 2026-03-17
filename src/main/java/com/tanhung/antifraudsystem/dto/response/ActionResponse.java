@@ -1,4 +1,4 @@
 package com.tanhung.antifraudsystem.dto.response;
 
-public record ActionResponse() {
+public record ActionResponse(String result) {
 }
