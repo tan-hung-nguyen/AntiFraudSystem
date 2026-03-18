@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class AntiFraudController {
 
+    private final AntiFraudService antiFraudService;
+
     @Autowired
-    AntiFraudService antiFraudService;
+    public AntiFraudController(AntiFraudService service){
+        antiFraudService = service;
+    }
 
     @PostMapping("/antifraud/transaction")
     public ResponseEntity<ActionResponse> requestTransaction(@RequestBody @Valid AmountRequest amountRequest){
@@ -24,4 +28,5 @@ public class AntiFraudController {
 
         return ResponseEntity.ok(result);
     }
+
 }
