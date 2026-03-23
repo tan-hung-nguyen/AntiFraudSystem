@@ -25,6 +25,10 @@ public class AuthService {
     }
 
     public UserRegistrationResponse register(UserRegistrationRequest user){
+
+        user.usernameToLowerCase();
+        if(user.getEmail() != null) user.emailToLowerCase();
+
         if(userRepo.existsByUsername(user.getUsername())){
             throw new RegistrationException("Username is already taken!");
         }

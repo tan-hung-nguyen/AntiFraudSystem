@@ -1,5 +1,7 @@
 package com.tanhung.antifraudsystem.controller;
 
+import com.tanhung.antifraudsystem.CustomAuthenticationEntryPoint;
+import com.tanhung.antifraudsystem.config.SecurityConfig;
 import com.tanhung.antifraudsystem.dto.response.ActionResponse;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AntiFraudService;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -114,7 +117,11 @@ class AntiFraudControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.amount")
+                        .value("Your transaction must be at least 1 dollar!"))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         Mockito.verifyNoInteractions(antiFraudService);
     }
@@ -131,13 +138,18 @@ class AntiFraudControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.amount")
+                        .value("Amount can't be null!"))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         Mockito.verifyNoInteractions(antiFraudService);
     }
 
     @Test
-    void shouldReturnForbidden_whenFailToAuthenticate() throws Exception{
+    @WithAnonymousUser
+    void shouldReturnUnauthorized_whenFailToAuthenticate() throws Exception{
         String json = """
                 {
                     "amount" : 100
@@ -149,5 +161,29 @@ class AntiFraudControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isUnauthorized());
+
+        Mockito.verifyNoInteractions(antiFraudService);
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnBadRequest_whenInvalidFormatDetected() throws Exception{
+        String json = """
+                {
+                    "amount" : "asda123"
+                }
+                """;
+
+        mockMvc.perform(post("/api/antifraud/transaction")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.details").value("Invalid Format!"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        Mockito.verifyNoInteractions(antiFraudService);
     }
 }

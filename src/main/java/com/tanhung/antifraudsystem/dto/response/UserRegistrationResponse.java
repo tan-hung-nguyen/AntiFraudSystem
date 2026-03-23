@@ -1,10 +1,16 @@
 package com.tanhung.antifraudsystem.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRegistrationResponse {
-    Long id;
-    String name;
-    String username;
+
+    private Long id;
+    private String name;
+    private String username;
 }

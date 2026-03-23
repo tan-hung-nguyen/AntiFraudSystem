@@ -41,4 +41,12 @@ public class UserRegistrationRequest {
 
     @Length(min = 10, max = 10)
     private String phoneNumber;
+
+    public void usernameToLowerCase(){
+        this.username = username.toLowerCase();
+    }
+
+    public void emailToLowerCase(){
+        this.email = email.toLowerCase();
+    }
 }
