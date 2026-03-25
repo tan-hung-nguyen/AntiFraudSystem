@@ -22,7 +22,7 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidTransactionAmount(MethodArgumentNotValidException e){
+    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         Map<String, String> errors = new HashMap<>();
 
         e.getBindingResult().getFieldErrors()
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(RegistrationException.class)
-    public ResponseEntity<ErrorResponse> handleRegistrationException(RegistrationException e){
+    public ResponseEntity<ErrorResponse> handleRegistrationConflictException(RegistrationException e){
 
         ErrorResponse error = new ErrorResponse();
         error.setStatusCode(HttpStatus.CONFLICT.value());

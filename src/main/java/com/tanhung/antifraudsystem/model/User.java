@@ -20,13 +20,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name", nullable = false, length = 30)
     private String firstName;
 
-    @Column(name =  "last_name", nullable = false)
+    @Column(name =  "last_name", nullable = false, length = 30)
     private String lastName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private String username;
 
     @Column(nullable = false)
@@ -34,6 +34,6 @@ public class User {
 
     private String email;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", length = 10)
     private String phoneNumber;
 }

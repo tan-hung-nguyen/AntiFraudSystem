@@ -149,7 +149,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithAnonymousUser
-    void shouldReturnUnauthorized_whenFailToAuthenticate() throws Exception{
+    void shouldReturnUnauthorized_whenUserIsAnonymous() throws Exception{
         String json = """
                 {
                     "amount" : 100
