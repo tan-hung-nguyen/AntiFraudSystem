@@ -26,27 +26,29 @@ public class AuthService {
 
     public UserRegistrationResponse register(UserRegistrationRequest user){
 
-        user.usernameToLowerCase();
-        if(user.getEmail() != null) user.emailToLowerCase();
+        if(user == null) {
+            throw new RegistrationException("Object cannot be null!");
+        }
 
-        if(userRepo.existsByUsername(user.getUsername())){
+        user.usernameToLowerCase();
+        if (user.getEmail() != null) {
+            user.emailToLowerCase();
+        }
+        if (userRepo.existsByUsername(user.getUsername())) {
             throw new RegistrationException("Username is already taken!");
         }
-        if(user.getEmail() != null && userRepo.existsByEmail(user.getEmail())){
-            throw new RegistrationException("Email is already been used!");
+        if (user.getEmail() != null && userRepo.existsByEmail(user.getEmail())) {
+            throw new RegistrationException("Email is already in used!");
         }
-        if(user.getPhoneNumber() != null && userRepo.existsByPhoneNumber(user.getPhoneNumber())){
-            throw new RegistrationException("Phone number is already been used!");
+        if (user.getPhoneNumber() != null && userRepo.existsByPhoneNumber(user.getPhoneNumber())) {
+            throw new RegistrationException("Phone number is already in used!");
         }
-
 
         String encodedPassword = passwordEncoder.encode(user.getPassword());
-
         user.setPassword(encodedPassword);
         User user1 = userMapper.toEntity(user);
 
         userRepo.save(user1);
-
         return userMapper.toDto(user1);
     }
 }

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 class AntiFraudServiceTest {
 
-    AntiFraudService antiFraudService = new AntiFraudService();
+    private final AntiFraudService antiFraudService = new AntiFraudService();
 
     @Test
     void shouldReturnAllowed_whenAmountBetween_1_And_200(){

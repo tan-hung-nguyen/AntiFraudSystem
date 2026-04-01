@@ -28,9 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
     @MockitoBean
-    AuthService authService;
+    private AuthService authService;
 
     @Test
     void shouldReturnCreated_whenRegisterSuccessfully() throws Exception {
