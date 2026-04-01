@@ -1,6 +1,7 @@
 package com.tanhung.antifraudsystem.exceptionHandler;
 
 import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
+import com.tanhung.antifraudsystem.exception.InvalidAmountException;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -75,4 +76,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(InvalidAmountException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAmountException(InvalidAmountException e) {
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setTimestamp(Instant.now());
+        error.setDetails(e.getMessage());
+
+        return ResponseEntity.badRequest().body(error);
+    }
 }

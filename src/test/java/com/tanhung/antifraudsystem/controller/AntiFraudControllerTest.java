@@ -39,12 +39,12 @@ class AntiFraudControllerTest {
     void shouldReturnAllowed_whenRequestAtLeastOneDollarAndLessThanOrEqualTwoHundredDollars() throws Exception{
         String json = """
                 {
-                    "amount" : 200
+                    "amount" : 200.00
                 }
                 """;
 
         ActionResponse expected = new ActionResponse("ALLOWED");
-        BigDecimal amount = new BigDecimal("200");
+        BigDecimal amount = new BigDecimal("200.00");
         Mockito.when(antiFraudService.checkAmount(amount))
                 .thenReturn(expected);
 
@@ -63,10 +63,10 @@ class AntiFraudControllerTest {
     void shouldReturnManualProcessing_whenRequestOverTwoHundredAndLessThanOrEqualFifteenthHundred() throws Exception{
         String json = """
                 {
-                    "amount" : 1000
+                    "amount" : 1000.00
                 }
                 """;
-        BigDecimal amount = new BigDecimal("1000");
+        BigDecimal amount = new BigDecimal("1000.00");
         ActionResponse expected = new ActionResponse("MANUAL_PROCESSING");
         Mockito.when(antiFraudService.checkAmount(amount))
                 .thenReturn(expected);
@@ -86,10 +86,10 @@ class AntiFraudControllerTest {
     void shouldReturnProhibited_whenRequestOverFifteenthHundredDollars() throws Exception{
         String json = """
                 {
-                    "amount" : 1700
+                    "amount" : 1700.00
                 }
                 """;
-        BigDecimal amount = new BigDecimal("1700");
+        BigDecimal amount = new BigDecimal("1700.00");
         ActionResponse expected = new ActionResponse("PROHIBITED");
         Mockito.when(antiFraudService.checkAmount(amount))
                 .thenReturn(expected);
@@ -109,7 +109,7 @@ class AntiFraudControllerTest {
     void shouldReturnBadRequest_whenRequestAmountLessThanOneDollar() throws Exception{
         String json = """
                 {
-                    "amount" : -100
+                    "amount" : -100.00
                 }
                 """;
 
@@ -152,7 +152,7 @@ class AntiFraudControllerTest {
     void shouldReturnUnauthorized_whenUserIsAnonymous() throws Exception{
         String json = """
                 {
-                    "amount" : 100
+                    "amount" : 100.00
                 }
                 """;
 
