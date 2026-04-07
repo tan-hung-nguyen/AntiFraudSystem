@@ -1,5 +1,6 @@
 package com.tanhung.antifraudsystem.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Email;
@@ -15,6 +16,7 @@ import org.hibernate.validator.constraints.Length;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class UserRegistrationRequest {
 
     @JsonProperty("firstName")

@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import javax.swing.*;
 import java.math.BigDecimal;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -181,7 +182,7 @@ class AntiFraudControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
-                .andExpect(jsonPath("$.details").value("Invalid Format!"))
+                .andExpect(jsonPath("$.details").value(containsString("Invalid")))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         Mockito.verifyNoInteractions(antiFraudService);

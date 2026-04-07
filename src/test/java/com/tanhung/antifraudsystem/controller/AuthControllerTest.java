@@ -1,11 +1,10 @@
 package com.tanhung.antifraudsystem.controller;
 
-import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponse;
+import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AuthService;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -16,7 +15,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,7 +40,7 @@ class AuthControllerTest {
                     "password" : "Hung1403"
                 }
                 """;
-        UserRegistrationResponse expected = new UserRegistrationResponse(1L,"hung nguyen", "hungnguyen");
+        UserResponseDto expected = new UserResponseDto(1L,"hung nguyen", "hungnguyen");
         Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
         mockMvc.perform(post("/api/auth/register")

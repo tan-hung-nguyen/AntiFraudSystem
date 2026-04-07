@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Entity
 @Setter
 @Getter
@@ -36,4 +38,12 @@ public class User {
 
     @Column(name = "phone_number", length = 10)
     private String phoneNumber;
+
+    @Column(nullable = false)
+    private boolean isActive;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
 }

@@ -1,7 +1,7 @@
 package com.tanhung.antifraudsystem.service;
 
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
-import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponse;
+import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
 import com.tanhung.antifraudsystem.model.User;
@@ -32,7 +32,7 @@ class AuthServiceTest {
 
     private UserRegistrationRequest requestUser;
     private User user;
-    private UserRegistrationResponse responseUser;
+    private UserResponseDto responseUser;
 
     @BeforeEach
     void setUp(){
@@ -46,7 +46,7 @@ class AuthServiceTest {
 
         user = new User();
 
-        responseUser = new UserRegistrationResponse();
+        responseUser = new UserResponseDto();
         responseUser.setUsername("tanhung");
         responseUser.setId(1L);
         responseUser.setName("Hung Nguyen");
@@ -63,7 +63,7 @@ class AuthServiceTest {
         Mockito.when(userRepo.save(user)).thenReturn(user);
         Mockito.when(userMapper.toDto(user)).thenReturn(responseUser);
 
-        UserRegistrationResponse actual = authService.register(requestUser);
+        UserResponseDto actual = authService.register(requestUser);
 
         assertEquals("encodedPassword", requestUser.getPassword());
         assertEquals("tanhung@gmail.com", requestUser.getEmail());
@@ -82,7 +82,7 @@ class AuthServiceTest {
         Mockito.when(userRepo.save(user)).thenReturn(user);
         Mockito.when(userMapper.toDto(user)).thenReturn(responseUser);
 
-        UserRegistrationResponse actual = authService.register(requestUser);
+        UserResponseDto actual = authService.register(requestUser);
 
         assertEquals("encodedPassword", requestUser.getPassword());
         assertEquals("Hung Nguyen", actual.getName());

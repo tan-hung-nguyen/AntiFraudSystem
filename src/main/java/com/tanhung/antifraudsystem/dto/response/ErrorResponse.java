@@ -1,5 +1,6 @@
 package com.tanhung.antifraudsystem.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@JsonPropertyOrder({"error", "statusCode", "details", "timestamp"})
 public class ErrorResponse {
 
     private Integer statusCode;

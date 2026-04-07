@@ -1,8 +1,10 @@
 package com.tanhung.antifraudsystem.exceptionHandler;
 
 import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
+import com.tanhung.antifraudsystem.exception.ActivationException;
 import com.tanhung.antifraudsystem.exception.InvalidAmountException;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
+import com.tanhung.antifraudsystem.exception.RoleChangeException;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -64,13 +68,13 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidValueFormatException(HttpMessageNotReadableException e){
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFormatException(InvalidFormatException e){
 
         ErrorResponse error = new ErrorResponse();
         error.setStatusCode(HttpStatus.BAD_REQUEST.value());
         error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails("Invalid Format!");
+        error.setDetails(e.getPath().getFirst().getPropertyName() +  ": Invalid Format!");
         error.setTimestamp(Instant.now());
 
         return ResponseEntity.badRequest().body(error);
@@ -85,5 +89,40 @@ public class GlobalExceptionHandler {
         error.setDetails(e.getMessage());
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(UnrecognizedPropertyException.class)
+    public ResponseEntity<ErrorResponse> handleUnrecognizedPropertyException(UnrecognizedPropertyException e) {
+
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setTimestamp(Instant.now());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setDetails("Unknown field: " + e.getPropertyName());
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(RoleChangeException.class)
+    public ResponseEntity<ErrorResponse> handleRoleChangeException(RoleChangeException e){
+
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(e.getStatus().value());
+        error.setError(e.getStatus().getReasonPhrase());
+        error.setDetails(e.getMessage());
+        error.setTimestamp(Instant.now());
+
+        return ResponseEntity.status(e.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(ActivationException.class)
+    public ResponseEntity<ErrorResponse> handleActivationException(ActivationException e){
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(e.getStatus().value());
+        error.setError(e.getStatus().getReasonPhrase());
+        error.setDetails(e.getMessage());
+        error.setTimestamp(Instant.now());
+
+        return ResponseEntity.status(e.getStatus()).body(error);
     }
 }
