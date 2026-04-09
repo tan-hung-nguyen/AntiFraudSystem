@@ -2,7 +2,10 @@ package com.tanhung.antifraudsystem.service;
 
 import com.tanhung.antifraudsystem.dto.response.ActionResponse;
 import com.tanhung.antifraudsystem.exception.InvalidAmountException;
+import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
 import java.math.BigDecimal;
@@ -10,7 +13,11 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 class AntiFraudServiceTest {
 
-    private final AntiFraudService antiFraudService = new AntiFraudService();
+    @MockitoBean
+    private SuspiciousIPRepo suspiciousIPRepo;
+
+    @InjectMocks
+    private AntiFraudService antiFraudService;
 
     @Test
     void shouldReturnAllowed_whenAmountBetween_1_And_200(){

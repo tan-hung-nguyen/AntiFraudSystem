@@ -54,7 +54,7 @@ public class AuthService {
 
         if(userRequest.getUsername().startsWith("admin") ||
         userRequest.getUsername().startsWith("root")){
-            throw new RegistrationException("Username contains preserved word!");
+            throw new RegistrationException("Username cannot start with reserved word!");
         }
         if (userRepo.existsByUsername(userRequest.getUsername())) {
             throw new RegistrationException("Username is already taken!");

@@ -1,16 +1,22 @@
 package com.tanhung.antifraudsystem.controller;
 
+import com.tanhung.antifraudsystem.CustomAccessDeniedHandler;
+import com.tanhung.antifraudsystem.CustomAuthenticationEntryPoint;
+import com.tanhung.antifraudsystem.config.SecurityConfig;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AuthService;
+import com.tanhung.antifraudsystem.service.MyUserDetailsService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +33,7 @@ class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
     @MockitoBean
     private AuthService authService;
 
@@ -40,7 +47,7 @@ class AuthControllerTest {
                     "password" : "Hung1403"
                 }
                 """;
-        UserResponseDto expected = new UserResponseDto(1L,"hung nguyen", "hungnguyen");
+        UserResponseDto expected = new UserResponseDto(1L,"hung nguyen", "hungnguyen", "ADMINISTRATOR");
         Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
         mockMvc.perform(post("/api/auth/register")
@@ -50,7 +57,11 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("hung nguyen"))
-                .andExpect(jsonPath("$.username").value("hungnguyen"));
+                .andExpect(jsonPath("$.username").value("hungnguyen"))
+                .andExpect(jsonPath("$.role").value("ADMINISTRATOR"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.phoneNumber").doesNotExist());
 
         Mockito.verify(authService).register(Mockito.any());
     }

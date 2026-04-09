@@ -44,7 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/auth/user/*").hasAuthority("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.PUT, "/api/auth/access", "/api/auth/role").hasAuthority("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/api/auth/list").hasAnyAuthority("ADMINISTRATOR","SUPPORT")
-                        .requestMatchers(HttpMethod.POST,"/api/antifraud/transaction").hasAuthority("MERCHANT"))
+                        .requestMatchers(HttpMethod.POST,"/api/antifraud/transaction").hasAuthority("MERCHANT")
+                        .requestMatchers("/api/antifraud/suspicous-ip", "api/antifraud/stolencard").hasAuthority("SUPPORT"))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -5,6 +5,7 @@ import com.tanhung.antifraudsystem.config.SecurityConfig;
 import com.tanhung.antifraudsystem.dto.response.ActionResponse;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AntiFraudService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"ALLOWED\" when amount [1.00, 200.00]")
     void shouldReturnAllowed_whenRequestAtLeastOneDollarAndLessThanOrEqualTwoHundredDollars() throws Exception{
         String json = """
                 {
@@ -61,6 +63,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"MANUAL_PROCESSING\" when amount (200.0000 - 1500.0000]")
     void shouldReturnManualProcessing_whenRequestOverTwoHundredAndLessThanOrEqualFifteenthHundred() throws Exception{
         String json = """
                 {
@@ -84,6 +87,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"PROHIBITED\" when amount (1500.000, inf)")
     void shouldReturnProhibited_whenRequestOverFifteenthHundredDollars() throws Exception{
         String json = """
                 {
@@ -107,6 +111,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"Bad Request\" when amount is less than 1.0000")
     void shouldReturnBadRequest_whenRequestAmountLessThanOneDollar() throws Exception{
         String json = """
                 {
@@ -129,6 +134,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"Bad Request\" when amount is missing")
     void shouldReturnBadRequest_whenRequestAmountIsMissing() throws Exception{
         String json = """
                 {
@@ -150,6 +156,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithAnonymousUser
+    @DisplayName("Return \"Unauthorized\" when user is unauthenticated")
     void shouldReturnUnauthorized_whenUserIsAnonymous() throws Exception{
         String json = """
                 {
@@ -168,6 +175,7 @@ class AntiFraudControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("Return \"Bad Request\" when amount value contains letter")
     void shouldReturnBadRequest_whenInvalidFormatDetected() throws Exception{
         String json = """
                 {

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -25,7 +25,7 @@ public class AuthController {
         authService = service;
     }
 
-    @PostMapping("/auth/register")
+    @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(
             @RequestBody @Valid UserRegistrationRequest userRegistrationRequest){
 
@@ -34,21 +34,21 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    @GetMapping("/auth/list")
+    @GetMapping("/list")
     public ResponseEntity<List<UserResponseDto>> getAllUsers(){
         List<UserResponseDto> users = authService.getAllUsers();
 
         return ResponseEntity.ok(users);
     }
 
-    @DeleteMapping("/auth/user/{username}")
+    @DeleteMapping("/user/{username}")
     public ResponseEntity<DeleteStatusResponse> deleteUser(@PathVariable String username){
         DeleteStatusResponse deletedUser = authService.deleteUser(username);
 
         return ResponseEntity.ok(deletedUser);
     }
 
-    @PutMapping("/auth/role")
+    @PutMapping("/role")
     public ResponseEntity<UserResponseDto> changeUserRole(@RequestBody UserChangeRoleRequest user){
         UserResponseDto responseDto = authService.changeRole(user);
 
