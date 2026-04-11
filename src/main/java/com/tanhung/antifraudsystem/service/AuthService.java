@@ -9,10 +9,13 @@ import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.ActivationException;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import com.tanhung.antifraudsystem.exception.RoleChangeException;
+import com.tanhung.antifraudsystem.exception.StolenCardException;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
 import com.tanhung.antifraudsystem.model.Role;
+import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.model.User;
 import com.tanhung.antifraudsystem.repo.RoleRepo;
+import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +36,18 @@ public class AuthService {
     private final RoleRepo roleRepo;
 
     @Autowired
-    public AuthService(PasswordEncoder encoder, UserRepo repo,
-                       UserMapper mapper, RoleRepo roleRepo){
-        passwordEncoder = encoder;
-        userRepo = repo;
-        userMapper = mapper;
+    public AuthService(PasswordEncoder encoder, UserRepo userRepo,
+                       UserMapper userMapper, RoleRepo roleRepo){
+        this.passwordEncoder = encoder;
+        this.userRepo = userRepo;
+        this.userMapper = userMapper;
         this.roleRepo = roleRepo;
     }
 
     public UserResponseDto register(UserRegistrationRequest userRequest) throws RegistrationException{
 
         if(userRequest == null) {
-            throw new RegistrationException("Object cannot be null!");
+            throw new RegistrationException("Object cannot be null!", HttpStatus.BAD_REQUEST);
         }
 
         userRequest.usernameToLowerCase();
@@ -54,18 +57,18 @@ public class AuthService {
 
         if(userRequest.getUsername().startsWith("admin") ||
         userRequest.getUsername().startsWith("root")){
-            throw new RegistrationException("Username cannot start with reserved word!");
+            throw new RegistrationException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
         }
         if (userRepo.existsByUsername(userRequest.getUsername())) {
-            throw new RegistrationException("Username is already taken!");
+            throw new RegistrationException("Username is already taken!", HttpStatus.CONFLICT);
         }
         if (userRequest.getEmail() != null &&
                 userRepo.existsByEmail(userRequest.getEmail())) {
-            throw new RegistrationException("Email is already in used!");
+            throw new RegistrationException("Email is already in used!", HttpStatus.CONFLICT);
         }
         if (userRequest.getPhoneNumber() != null &&
                 userRepo.existsByPhoneNumber(userRequest.getPhoneNumber())) {
-            throw new RegistrationException("Phone number is already in used!");
+            throw new RegistrationException("Phone number is already in used!", HttpStatus.CONFLICT);
         }
 
         String encodedPassword = passwordEncoder.encode(userRequest.getPassword());

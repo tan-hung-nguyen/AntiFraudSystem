@@ -1,10 +1,7 @@
 package com.tanhung.antifraudsystem.exceptionHandler;
 
 import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
-import com.tanhung.antifraudsystem.exception.ActivationException;
-import com.tanhung.antifraudsystem.exception.InvalidAmountException;
-import com.tanhung.antifraudsystem.exception.RegistrationException;
-import com.tanhung.antifraudsystem.exception.RoleChangeException;
+import com.tanhung.antifraudsystem.exception.*;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,20 +37,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(response);
     }
-
-
-    @ExceptionHandler(RegistrationException.class)
-    public ResponseEntity<ErrorResponse> handleRegistrationConflictException(RegistrationException e){
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.CONFLICT.value());
-        error.setError(HttpStatus.CONFLICT.getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e){
@@ -103,8 +86,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    @ExceptionHandler(RoleChangeException.class)
-    public ResponseEntity<ErrorResponse> handleRoleChangeException(RoleChangeException e){
+    @ExceptionHandler({ActivationException.class, RegistrationException.class, RoleChangeException.class})
+    public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
 
         ErrorResponse error = new ErrorResponse();
         error.setStatusCode(e.getStatus().value());
@@ -115,8 +98,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getStatus()).body(error);
     }
 
-    @ExceptionHandler(ActivationException.class)
-    public ResponseEntity<ErrorResponse> handleActivationException(ActivationException e){
+
+    @ExceptionHandler({IPAddressException.class, StolenCardException.class})
+    public ResponseEntity<ErrorResponse> handleAntiFraudServiceException(AntiFraudServiceException e){
         ErrorResponse error = new ErrorResponse();
         error.setStatusCode(e.getStatus().value());
         error.setError(e.getStatus().getReasonPhrase());
@@ -125,4 +109,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(e.getStatus()).body(error);
     }
+
 }

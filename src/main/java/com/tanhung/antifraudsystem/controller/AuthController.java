@@ -49,14 +49,14 @@ public class AuthController {
     }
 
     @PutMapping("/role")
-    public ResponseEntity<UserResponseDto> changeUserRole(@RequestBody UserChangeRoleRequest user){
+    public ResponseEntity<UserResponseDto> changeUserRole(@RequestBody @Valid UserChangeRoleRequest user){
         UserResponseDto responseDto = authService.changeRole(user);
 
         return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping("/auth/access")
-    public ResponseEntity<StatusResponse> activateUser(@RequestBody UserActivationRequest request){
+    public ResponseEntity<StatusResponse> activateUser(@RequestBody @Valid UserActivationRequest request){
         StatusResponse response = authService.activateUser(request);
 
         return ResponseEntity.ok(response);

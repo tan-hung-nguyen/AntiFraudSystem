@@ -1,0 +1,32 @@
+package com.tanhung.antifraudsystem.dto.request;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TransactionRequest{
+
+        @NotNull(message = "Amount can't be null!")
+        @DecimalMin(value = "1.00",
+                    message = "Your transaction must be at least 1 dollar!")
+        private BigDecimal amount;
+
+        @NotBlank(message = "Ip must be provided")
+        @Pattern(regexp = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
+                message = "Your ip in wrong format!")
+        private String ip;
+
+        @NotBlank(message = "Card number needed to be processed!")
+        @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits")
+        private String number;
+}

@@ -1,7 +1,9 @@
 package com.tanhung.antifraudsystem.exception;
 
-public class RegistrationException extends RuntimeException {
-    public RegistrationException(String message) {
-        super(message);
+import org.springframework.http.HttpStatus;
+
+public class RegistrationException extends AuthServiceException {
+    public RegistrationException(String message, HttpStatus status) {
+        super(message, status);
     }
 }

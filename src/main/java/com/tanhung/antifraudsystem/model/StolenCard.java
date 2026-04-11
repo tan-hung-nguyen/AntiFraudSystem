@@ -1,7 +1,6 @@
 package com.tanhung.antifraudsystem.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -9,22 +8,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Entity
-@Table(name = "suspicious-ips")
-@Setter
+@Table(name = "stolencards")
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SuspiciousIPAddress {
-
+public class StolenCard{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Pattern(regexp = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
-    message = "Your ip in wrong format!")
-    @NotNull(message = "IP address must not be null!")
+    @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits")
+    @NotNull(message = "Your card number must not be null!")
     @Column(nullable = false, unique = true)
-    private String ip;
+    private String cardNumber;
 
 }

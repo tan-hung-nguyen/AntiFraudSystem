@@ -1,4 +1,7 @@
 package com.tanhung.antifraudsystem.dto.request;
 
-public record UserChangeRoleRequest(String username, String role) {
+import jakarta.validation.constraints.NotBlank;
+
+public record UserChangeRoleRequest(@NotBlank(message = "Username must not be null or blank") String username,
+                                    @NotBlank(message = "Role must not be null or blank") String role) {
 }
