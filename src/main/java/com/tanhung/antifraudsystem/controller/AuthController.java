@@ -55,7 +55,7 @@ public class AuthController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @PutMapping("/auth/access")
+    @PutMapping("/access")
     public ResponseEntity<StatusResponse> activateUser(@RequestBody @Valid UserActivationRequest request){
         StatusResponse response = authService.activateUser(request);
 
