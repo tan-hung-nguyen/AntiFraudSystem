@@ -1019,7 +1019,7 @@ class AuthControllerTest {
                     }
                     """;
 
-            Mockito.when(authService.activateUser(Mockito.any()))
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
                     .thenReturn(new StatusResponse("User hungnguyen unlocked"));
             mockMvc.perform(put("/api/auth/access")
                     .with(csrf())
@@ -1028,7 +1028,7 @@ class AuthControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").exists());
 
-            Mockito.verify(authService).activateUser(Mockito.any());
+            Mockito.verify(authService).setUserActiveStatus(Mockito.any());
         }
 
         @Test

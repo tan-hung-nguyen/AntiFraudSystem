@@ -1,19 +1,31 @@
 package com.tanhung.antifraudsystem.service;
 
+import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
+import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
+import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
+import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
+import com.tanhung.antifraudsystem.exception.UserActiveStatusException;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
+import com.tanhung.antifraudsystem.exception.RoleChangeException;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
+import com.tanhung.antifraudsystem.mapper.UserMapperImpl;
+import com.tanhung.antifraudsystem.model.Role;
 import com.tanhung.antifraudsystem.model.User;
+import com.tanhung.antifraudsystem.repo.RoleRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,116 +37,453 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private UserMapper userMapper;
+    private RoleRepo roleRepo;
 
-    @InjectMocks
+    private final UserMapper userMapper = new UserMapperImpl();
+
+
     private AuthService authService;
 
-    private UserRegistrationRequest requestUser;
-    private User user;
-    private UserResponseDto responseUser;
-
     @BeforeEach
-    void setUp(){
-        requestUser = new UserRegistrationRequest();
-        requestUser.setFirstName("Hung");
-        requestUser.setLastName("Nguyen");
-        requestUser.setUsername("TanHUng");
-        requestUser.setPassword("password");
-        requestUser.setEmail("TanHuNg@GmaiL.com");
-        requestUser.setPhoneNumber("1234567890");
-
-        user = new User();
-
-        responseUser = new UserResponseDto();
-        responseUser.setUsername("tanhung");
-        responseUser.setId(1L);
-        responseUser.setName("Hung Nguyen");
-
-    }
-    @Test
-    void shouldSucceedToRegister_whenAllInfoProvidedAndNoConflict(){
-        Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(false);
-        Mockito.when(userRepo.existsByEmail(Mockito.eq("tanhung@gmail.com"))).thenReturn(false);
-        Mockito.when(userRepo.existsByPhoneNumber(Mockito.any())).thenReturn(false);
-        Mockito.when(passwordEncoder.encode(requestUser.getPassword())).thenReturn("encodedPassword");
-        Mockito.when(userMapper.toEntity(requestUser)).thenReturn(user);
-
-        Mockito.when(userRepo.save(user)).thenReturn(user);
-        Mockito.when(userMapper.toDto(user)).thenReturn(responseUser);
-
-        UserResponseDto actual = authService.register(requestUser);
-
-        assertEquals("encodedPassword", requestUser.getPassword());
-        assertEquals("tanhung@gmail.com", requestUser.getEmail());
-        assertEquals("Hung Nguyen", actual.getName());
-        assertEquals("tanhung", actual.getUsername());
+    void setUpAuthService(){
+        authService = new AuthService(passwordEncoder, userRepo, userMapper, roleRepo);
     }
 
-    @Test
-    void shouldSucceedToRegister_whenEmailAndPhoneNumberAreNull(){
-        requestUser.setPhoneNumber(null);
-        requestUser.setEmail(null);
+    @Nested
+    @DisplayName("register() method testing")
+    class registerMethodTesting {
 
-        Mockito.when(passwordEncoder.encode(requestUser.getPassword()))
-                .thenReturn("encodedPassword");
-        Mockito.when(userMapper.toEntity(requestUser)).thenReturn(user);
-        Mockito.when(userRepo.save(user)).thenReturn(user);
-        Mockito.when(userMapper.toDto(user)).thenReturn(responseUser);
+        private UserRegistrationRequest requestUser;
+        private User userEntity;
 
-        UserResponseDto actual = authService.register(requestUser);
+        @BeforeEach
+        void setUp(){
 
-        assertEquals("encodedPassword", requestUser.getPassword());
-        assertEquals("Hung Nguyen", actual.getName());
-        assertEquals("tanhung", actual.getUsername());
+            requestUser = new UserRegistrationRequest();
+            requestUser.setFirstName("Hung");
+            requestUser.setLastName("Nguyen");
+            requestUser.setUsername("TanHUng");
+            requestUser.setPassword("Password123");
+            requestUser.setEmail("Test@GmaiL.com");
+            requestUser.setPhoneNumber("1234567890");
 
-        Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
+
+        }
+
+        @Test
+        @DisplayName("Register first user as administration then return UserDto(id, name, username, role) " +
+                "when providing valid all 6 fields (firstname, lastname, username, password, email, phone number)")
+        void shouldRegisterFirstUserAsAdministrator_whenValidRequestProvided() {
+
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(false);
+            Mockito.when(userRepo.existsByEmail(Mockito.eq("test@gmail.com"))).thenReturn(false);
+            Mockito.when(userRepo.existsByPhoneNumber(Mockito.any())).thenReturn(false);
+
+            Mockito.when(passwordEncoder.encode(requestUser.getPassword())).thenReturn("encodedPassword");
+
+
+            Mockito.when(userRepo.count()).thenReturn(0L);
+            Mockito.when(roleRepo.findRoleByRoleValue("ADMINISTRATOR"))
+                    .thenReturn(new Role(1L, "ADMINISTRATOR"));
+
+            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+
+
+            UserResponseDto actual = authService.register(requestUser);
+
+            Mockito.verify(userRepo).save(captor.capture());
+
+            userEntity = captor.getValue();
+
+            //Check if user entity is saved correctly
+            assertEquals("Hung", userEntity.getFirstName());
+            assertEquals("Nguyen", userEntity.getLastName());
+            assertEquals("tanhung", userEntity.getUsername());
+            assertEquals("1234567890", userEntity.getPhoneNumber());
+            assertEquals("test@gmail.com", userEntity.getEmail());
+            assertEquals("encodedPassword", userEntity.getPassword());
+            assertEquals("ADMINISTRATOR", userEntity.getRole().getRoleValue());
+            assertTrue(userEntity.isActive());
+
+            //Check if user dto return as desired
+            assertEquals("Hung Nguyen", actual.getName());
+            assertEquals("tanhung", actual.getUsername());
+            assertEquals("ADMINISTRATOR", actual.getRole());
+
+        }
+
+        @Test
+        @DisplayName("Register user as merchant role after first user then return userDTO(id, name, username, role) " +
+                "when providing valid 4 required infos (firstname, lastname, username, password)")
+        void shouldRegisterUserAsMerchant_whenUserNotTheFirstAndEmailAndPhoneNumberAreNull() {
+            requestUser.setPhoneNumber(null);
+            requestUser.setEmail(null);
+
+            Mockito.when(passwordEncoder.encode(requestUser.getPassword()))
+                    .thenReturn("encodedPassword");
+            Mockito.when(userRepo.existsByUsername("tanhung")).thenReturn(false);
+            Mockito.when(userRepo.count()).thenReturn(1L);
+            Mockito.when(roleRepo.findRoleByRoleValue("MERCHANT")).thenReturn(new Role(2L,"MERCHANT"));
+
+            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+
+            UserResponseDto actual = authService.register(requestUser);
+
+            //Capture user entity object inside the method
+            Mockito.verify(userRepo).save(captor.capture());
+
+            //Get user entity object inside the method
+            userEntity = captor.getValue();
+            //Check saved entity
+            assertNull(userEntity.getEmail());
+            assertNull(userEntity.getPhoneNumber());
+            assertEquals("Hung", userEntity.getFirstName());
+            assertEquals("Nguyen", userEntity.getLastName());
+            assertEquals("encodedPassword", userEntity.getPassword());
+            assertEquals("MERCHANT", userEntity.getRole().getRoleValue());
+            assertFalse(userEntity.isActive());
+
+            //Check dto
+            assertEquals("Hung Nguyen", actual.getName());
+            assertEquals("tanhung", actual.getUsername());
+            assertEquals("MERCHANT", actual.getRole());
+
+            Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when username start with admin")
+        void shouldThrowRegistrationException_whenUsernameStartWithAdmin(){
+            requestUser.setUsername("admintanhung");
+            RegistrationException ex = assertThrows(RegistrationException.class,
+                    () -> authService.register(requestUser));
+            assertEquals("Username cannot start with reserved word!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+
+            Mockito.verify(userRepo, Mockito.never()).existsByUsername(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when username start with root")
+        void shouldThrowRegistrationException_whenUsernameStartWithRoot(){
+            requestUser.setUsername("roottanhung");
+            RegistrationException ex = assertThrows(RegistrationException.class,
+                    () -> authService.register(requestUser));
+            assertEquals("Username cannot start with reserved word!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+
+            Mockito.verify(userRepo, Mockito.never()).existsByUsername(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when user provides email is in used")
+        void shouldThrowRegistrationException_whenEmailIsInUsed() {
+            Mockito.when(userRepo.existsByEmail(Mockito.eq("test@gmail.com")))
+                    .thenReturn(true);
+
+            RegistrationException ex = assertThrows(RegistrationException.class,
+                    () -> authService.register(requestUser));
+            assertEquals("Email is already in used!", ex.getMessage());
+            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
+            Mockito.verify(userRepo).existsByEmail(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when username is taken")
+        void shouldThrowRegistrationException_whenUsernameIsInTaken() {
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(true);
+
+            RegistrationException ex = assertThrows(RegistrationException.class,
+                    () -> authService.register(requestUser));
+            assertEquals("Username is already taken!", ex.getMessage());
+            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
+            Mockito.verify(userRepo).existsByUsername(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when user provides phone number is in used")
+        void shouldThrowRegistrationException_whenPhoneNumberIsInUsed() {
+            Mockito.when(userRepo.existsByPhoneNumber(Mockito.any())).thenReturn(true);
+
+            RegistrationException ex = assertThrows(RegistrationException.class,
+                    () -> authService.register(requestUser));
+
+            assertEquals("Phone number is already in used!", ex.getMessage());
+            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
+            Mockito.verify(userRepo).existsByPhoneNumber(Mockito.any());
+            Mockito.verify(passwordEncoder, Mockito.never()).encode(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Throw RegistrationException when user object is null")
+        void shouldThrowRegistrationException_whenUserIsNull() {
+            RegistrationException ex = assertThrows(RegistrationException.class, () -> authService.register(null));
+
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+            Mockito.verify(userRepo, Mockito.never()).existsByUsername(Mockito.any());
+            Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+
+        }
     }
-    @Test
-    void shouldThrowRegistrationException_whenEmailIsInUsed(){
-        Mockito.when(userRepo.existsByEmail(Mockito.eq("tanhung@gmail.com")))
-                .thenReturn(true);
 
-        RegistrationException ex = assertThrows(RegistrationException.class,
-                () -> authService.register(requestUser));
-        assertEquals("Email is already in used!", ex.getMessage());
-        Mockito.verify(userRepo).existsByEmail(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+    @Nested
+    @DisplayName("getAllUsers() method")
+    class getAllUsersMethodTest{
+
+        @Test
+        @DisplayName("Return a list of user dto when users existed")
+        void shouldReturnListOfUsers_whenUserExisted(){
+            User user = new User(1L, "test","test","test",
+                    "test","test","test",true,new Role(1L, "test"));
+            User user1 = new User(1L, "test","test","test",
+                    "test","test","test",true,new Role(1L, "test"));
+
+            Mockito.when(userRepo.findAll(Sort.by("id"))).thenReturn(List.of(user, user1));
+
+            List<UserResponseDto> actual = authService.getAllUsers();
+
+            assertEquals(2, actual.size());
+            actual.forEach(dto -> assertInstanceOf(UserResponseDto.class, dto));
+        }
+
+        @Test
+        @DisplayName("Return empty list if there is no users")
+        void shouldReturnEmptyList_whenThereIsNoUsers(){
+            Mockito.when(userRepo.findAll(Sort.by("id"))).thenReturn(List.of());
+
+            List<UserResponseDto> actual = authService.getAllUsers();
+
+            assertTrue(actual.isEmpty());
+        }
     }
 
-    @Test
-    void shouldThrowRegistrationException_whenUsernameIsInUsed(){
-        Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(true);
+    @Nested
+    @DisplayName("deleteUser() method")
+    class deleteUserMethodTest{
+        @Test
+        @DisplayName("Delete user successfully when username is found")
+        void shouldDeleteUserSuccessfully_whenUsernameIsFound(){
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("test"))).thenReturn(true);
 
-        RegistrationException ex = assertThrows(RegistrationException.class,
-                () -> authService.register(requestUser));
-        assertEquals("Username is already taken!", ex.getMessage());
-        Mockito.verify(userRepo).existsByUsername(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+            DeleteStatusResponse actual = authService.deleteUser("test");
+
+            Mockito.verify(userRepo).deleteUserByUsername(Mockito.any());
+            assertEquals("test", actual.username());
+            assertEquals("Deleted successfully!", actual.status());
+        }
+
+        @Test
+        @DisplayName("Throw UsernameNotFoundException when username is not existed")
+        void shouldThrowUsernameNotFoundException_whenUsernameIsNotExisted() {
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("test"))).thenReturn(false);
+
+            UsernameNotFoundException ex = assertThrows(UsernameNotFoundException.class,
+                    () -> authService.deleteUser("test"));
+
+            assertEquals("Username not found!", ex.getMessage());
+            Mockito.verify(userRepo, Mockito.never()).deleteUserByUsername("test");
+        }
     }
 
-    @Test
-    void shouldThrowRegistrationException_whenPhoneNumberIsInUsed(){
-        Mockito.when(userRepo.existsByPhoneNumber(Mockito.any())).thenReturn(true);
+    @Nested
+    @DisplayName("changeRole() method")
+    class changeRoleMethodTest{
 
-        RegistrationException ex = assertThrows(RegistrationException.class,
-                () -> authService.register(requestUser));
+        private UserChangeRoleRequest userChangeRoleRequest;
+        private User userFound;
+        private UserResponseDto userDto;
 
-        assertEquals("Phone number is already in used!", ex.getMessage());
-        Mockito.verify(userRepo).existsByPhoneNumber(Mockito.any());
-        Mockito.verify(passwordEncoder, Mockito.never()).encode(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        @BeforeEach
+        void setUp(){
+            userChangeRoleRequest = new UserChangeRoleRequest("usernameTest", "support");
+            userFound = new User(1L,
+                    "Firstname",
+                    "Lastname",
+                    "usernametest",
+                    "Test1234",
+                    "test@gmail.com",
+                    "1234567890",
+                    true, new Role(1L, "MERCHANT"));
+        }
+
+        @Test
+        @DisplayName("Should change role user to \"SUPPORT\" when the current user's role is other than admin")
+        void shouldChangeUserRoleSuccessfullyToSupport_whenCurrentUserRoleIsOtherThanAdmin() {
+            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
+
+            userDto = authService.changeRole(userChangeRoleRequest);
+
+            //Check return user dto
+            assertEquals("Firstname Lastname", userDto.getName());
+            assertEquals("usernametest", userDto.getUsername());
+            assertEquals("SUPPORT", userDto.getRole());
+        }
+
+        @Test
+        @DisplayName("Should throw UsernameNotFoundException when the username not found")
+        void shouldThrowUsernameNotFoundException_whenUsernameNotFound() {
+
+            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(null);
+
+            UsernameNotFoundException ex = assertThrows(UsernameNotFoundException.class,
+                    () -> authService.changeRole(userChangeRoleRequest));
+
+            assertEquals("Username not found!", ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Should throw RoleChangeException when the request role is not MERCHANT nor SUPPORT")
+        void shouldThrowRoleChangeException_whenRequestRoleIsNotMerchantNorSupport(){
+
+            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
+
+            userChangeRoleRequest = new UserChangeRoleRequest("usernametest", "MODER");
+
+            RoleChangeException ex = assertThrows(RoleChangeException.class,
+                    ()-> authService.changeRole(userChangeRoleRequest));
+            assertEquals("Only Support or Merchant role are available!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
+
+        @Test
+        @DisplayName("Should throw RoleChangeException when the request role is the same as current role")
+        void shouldThrowRoleChangeException_whenRequestRoleSameAsCurrentRole(){
+
+            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
+
+            userChangeRoleRequest = new UserChangeRoleRequest("usernametest", "MERCHANT");
+
+            RoleChangeException ex = assertThrows(RoleChangeException.class,
+                    ()-> authService.changeRole(userChangeRoleRequest));
+            assertEquals("usernametest has been provided this role!", ex.getMessage());
+            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
+
+        }
+
+        @Test
+        @DisplayName("Should throw RoleChangeException when the request role is administrator")
+         void shouldThrowRoleChangeException_whenRequestRoleChangeIsAdministrator() {
+            userFound.setRole(new Role(1L, "ADMINISTRATOR"));
+            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
+
+            userChangeRoleRequest = new UserChangeRoleRequest("usernametest", "merchant");
+
+            RoleChangeException ex = assertThrows(RoleChangeException.class,
+                    () -> authService.changeRole(userChangeRoleRequest));
+
+            assertEquals("This are admin! You cannot make change role on admin.", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
+
     }
 
-    @Test
-    void shouldThrowRegistrationException_whenUserIsNull(){
-        assertThrows(RegistrationException.class, () -> authService.register(null));
+    @Nested
+    @DisplayName("setUserActiveStatus() method")
+    class setUserActiveStatusMethodTest{
 
-        Mockito.verify(userRepo, Mockito.never()).existsByUsername(Mockito.any());
-        Mockito.verify(userRepo, Mockito.never()).save(Mockito.any());
+        private UserAccessChangeRequest userAccessChangeRequest;
+        private User userFound;
 
+
+
+        @BeforeEach
+        void setUp(){
+            userAccessChangeRequest = new UserAccessChangeRequest("test","unlock");
+            userFound = new User(1L,
+                    "Firstname",
+                    "Lastname",
+                    "test",
+                    "Test1234",
+                    "test@gmail.com",
+                    "1234567890",
+                    false, new Role(2L, "MERCHANT"));
+        }
+
+        @Test
+        @DisplayName("Should activate user successfully when user is locked with \"UNLOCK\" operation")
+        void shouldActivateUserSuccessfully_whenUserIsLockedWithValidOperation() {
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+
+            StatusResponse actual = authService.setUserActiveStatus(userAccessChangeRequest);
+
+            assertEquals("User test unlocked!", actual.status());
+            assertTrue(userFound.isActive());
+        }
+
+        @Test
+        @DisplayName("Should deactivate user successfully when user is unlocked with \"LOCK\" operation")
+        void shouldDeactivateUserSuccessfully_whenUserIsUnlockedWithValidOperation() {
+            userFound.setActive(true);
+            userAccessChangeRequest = new UserAccessChangeRequest("test", "LOCK");
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+
+            StatusResponse actual = authService.setUserActiveStatus(userAccessChangeRequest);
+
+            assertEquals("User test locked!", actual.status());
+            assertFalse(userFound.isActive());
+        }
+
+        @Test
+        @DisplayName("Should throw UserActiveStatusException when using other operation other than \"LOCK\" and \"UNLOCK\"")
+        void shouldThrowUserActiveStatusException_whenUsingInvalidOperation() {
+
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+            userAccessChangeRequest = new UserAccessChangeRequest("test", "OPEN");
+
+            UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
+                    () -> authService.setUserActiveStatus(userAccessChangeRequest));
+            assertEquals("Invalid operation!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
+
+        @Test
+        @DisplayName("Should throw UserActiveStatusException when trying deactivate admin")
+        void shouldThrowUserActiveStatusException_whenDeactivatingAdmin(){
+            userFound.setRole(new Role(1L, "ADMINISTRATOR"));
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+
+            UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
+                    () -> authService.setUserActiveStatus(userAccessChangeRequest));
+
+            assertEquals("You cannot deactivate administrator!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
+
+        @Test
+        @DisplayName("Should throw UserActiveStatusException when activating an active user")
+        void shouldThrowUserActiveStatusException_whenActivatingAnActiveUser(){
+            userFound.setActive(true);
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+
+            UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
+                    () -> authService.setUserActiveStatus(userAccessChangeRequest));
+
+            assertEquals("User test has been already activated!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
+
+        @Test
+        @DisplayName("Should throw UserActiveStatusException when deactivating an inactive user")
+        void shouldThrowUserActiveStatusException_whenDeactivatingAnInactiveUser(){
+
+            userAccessChangeRequest = new UserAccessChangeRequest("test", "lock");
+            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
+
+            UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
+                    () -> authService.setUserActiveStatus(userAccessChangeRequest));
+
+            assertEquals("User test has been already deactivated!", ex.getMessage());
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+        }
     }
+
+
 }

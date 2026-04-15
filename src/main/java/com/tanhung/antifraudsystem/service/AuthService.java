@@ -1,21 +1,18 @@
 package com.tanhung.antifraudsystem.service;
 
-import com.tanhung.antifraudsystem.dto.request.UserActivationRequest;
+import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
 import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
-import com.tanhung.antifraudsystem.exception.ActivationException;
+import com.tanhung.antifraudsystem.exception.UserActiveStatusException;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
 import com.tanhung.antifraudsystem.exception.RoleChangeException;
-import com.tanhung.antifraudsystem.exception.StolenCardException;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
 import com.tanhung.antifraudsystem.model.Role;
-import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.model.User;
 import com.tanhung.antifraudsystem.repo.RoleRepo;
-import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +69,8 @@ public class AuthService {
         }
 
         String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
-        userRequest.setPassword(encodedPassword);
         User user = userMapper.toEntity(userRequest);
+        user.setPassword(encodedPassword);
 
         if(userRepo.count() == 0){
             Role adminRole = roleRepo.findRoleByRoleValue("ADMINISTRATOR");
@@ -101,9 +98,8 @@ public class AuthService {
         if(!userRepo.existsByUsername(username)){
             throw new UsernameNotFoundException("Username not found!");
         }
-        User deletedUser = userRepo.findByUsername(username);
         userRepo.deleteUserByUsername(username);
-        return new DeleteStatusResponse(deletedUser.getUsername(), "Deleted successfully!");
+        return new DeleteStatusResponse(username, "Deleted successfully!");
     }
 
     @Transactional
@@ -123,25 +119,25 @@ public class AuthService {
         }
 
         if(userFound.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new RoleChangeException("You are admin! You cannot make change your own role.", HttpStatus.BAD_REQUEST);
+            throw new RoleChangeException("This are admin! You cannot make change role on admin.", HttpStatus.BAD_REQUEST);
         }
         userFound.getRole().setRoleValue(user.role().toUpperCase());
         return userMapper.toDto(userFound);
     }
 
     @Transactional
-    public StatusResponse activateUser(UserActivationRequest request) throws UsernameNotFoundException, ActivationException{
+    public StatusResponse setUserActiveStatus(UserAccessChangeRequest request) throws UsernameNotFoundException, UserActiveStatusException {
         User found = userRepo.findByUsername(request.username().toLowerCase());
         if(found == null) throw new UsernameNotFoundException("User not found!");
         if(found.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new ActivationException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
+            throw new UserActiveStatusException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
         }
 
         if(found.isActive() && request.operation().equalsIgnoreCase("unlock")){
-            throw new ActivationException("User " + found.getUsername() + " has been already activated!",
+            throw new UserActiveStatusException("User " + found.getUsername() + " has been already activated!",
                                             HttpStatus.BAD_REQUEST);
         } else if(!found.isActive() && request.operation().equalsIgnoreCase("lock")){
-            throw new ActivationException("User " + found.getUsername() + " has been already deactivated!",
+            throw new UserActiveStatusException("User " + found.getUsername() + " has been already deactivated!",
                                             HttpStatus.BAD_REQUEST);
         }
 
@@ -152,8 +148,7 @@ public class AuthService {
             found.setActive(false);
             return new StatusResponse("User " + found.getUsername() + " locked!");
         } else {
-            throw new ActivationException("Invalid operation!", HttpStatus.BAD_REQUEST);
+            throw new UserActiveStatusException("Invalid operation!", HttpStatus.BAD_REQUEST);
         }
-
     }
 }

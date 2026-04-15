@@ -2,15 +2,11 @@ package com.tanhung.antifraudsystem.exceptionHandler;
 
 import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
 import com.tanhung.antifraudsystem.exception.*;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tools.jackson.databind.exc.InvalidFormatException;
 import tools.jackson.databind.exc.UnrecognizedPropertyException;
@@ -18,7 +14,6 @@ import tools.jackson.databind.exc.UnrecognizedPropertyException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -86,7 +81,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    @ExceptionHandler({ActivationException.class, RegistrationException.class, RoleChangeException.class})
+    @ExceptionHandler({UserActiveStatusException.class, RegistrationException.class, RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
 
         ErrorResponse error = new ErrorResponse();

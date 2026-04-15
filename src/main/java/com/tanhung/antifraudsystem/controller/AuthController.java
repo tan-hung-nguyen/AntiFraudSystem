@@ -1,6 +1,6 @@
 package com.tanhung.antifraudsystem.controller;
 
-import com.tanhung.antifraudsystem.dto.request.UserActivationRequest;
+import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
 import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
@@ -56,8 +56,8 @@ public class AuthController {
     }
 
     @PutMapping("/access")
-    public ResponseEntity<StatusResponse> activateUser(@RequestBody @Valid UserActivationRequest request){
-        StatusResponse response = authService.activateUser(request);
+    public ResponseEntity<StatusResponse> setUserActiveStatus(@RequestBody @Valid UserAccessChangeRequest request){
+        StatusResponse response = authService.setUserActiveStatus(request);
 
         return ResponseEntity.ok(response);
     }
