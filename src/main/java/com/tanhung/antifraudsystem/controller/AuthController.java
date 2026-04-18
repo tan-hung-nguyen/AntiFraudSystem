@@ -1,19 +1,23 @@
 package com.tanhung.antifraudsystem.controller;
 
+import com.tanhung.antifraudsystem.dto.request.AuthenticationRequest;
 import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
 import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
+import com.tanhung.antifraudsystem.dto.response.AuthenticationResponse;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.service.AuthService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,14 +30,20 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(
+    public ResponseEntity<Map<String, Object>> register(
             @RequestBody @Valid UserRegistrationRequest userRegistrationRequest){
 
-        UserResponseDto res = authService.register(userRegistrationRequest);
+        Map<String, Object> res = authService.register(userRegistrationRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
+        AuthenticationResponse response = authService.authenticate(request);
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/list")
     public ResponseEntity<List<UserResponseDto>> getAllUsers(){
         List<UserResponseDto> users = authService.getAllUsers();

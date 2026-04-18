@@ -2,6 +2,7 @@ package com.tanhung.antifraudsystem.controller;
 
 import com.tanhung.antifraudsystem.CustomAccessDeniedHandler;
 import com.tanhung.antifraudsystem.CustomAuthenticationEntryPoint;
+import com.tanhung.antifraudsystem.config.JwtAuthenticationFilter;
 import com.tanhung.antifraudsystem.config.SecurityConfig;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
@@ -28,7 +29,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -47,12 +50,15 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthService authService;
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Nested
     @DisplayName("POST /api/auth/register")
     class registerUserTest {
         @Test
-        @DisplayName("Return \"Created\" status, id, name, username, and role when registering successfully")
+        @DisplayName("Return \"Created\" status, id, name, username, role, and jwt token " +
+                "when providing 4 required fields (firstName, lastName, username, password)")
         void shouldReturnCreated_whenRegisterSuccessfully() throws Exception {
             String json = """
                     {
@@ -62,7 +68,8 @@ class AuthControllerTest {
                         "password" : "Hung1403"
                     }
                     """;
-            UserResponseDto expected = new UserResponseDto(1L, "hung nguyen", "hungnguyen", "ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen", "hungnguyen", "ADMINISTRATOR");
+            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken" );
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -70,13 +77,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.role").exists())
-                    .andExpect(jsonPath("$.password").doesNotExist())
-                    .andExpect(jsonPath("$.email").doesNotExist())
-                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.id").exists())
+                    .andExpect(jsonPath("$.user_info.name").exists())
+                    .andExpect(jsonPath("$.user_info.username").exists())
+                    .andExpect(jsonPath("$.user_info.role").exists())
+                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.token").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
             Mockito.verify(authService).register(Mockito.any());
@@ -233,22 +241,23 @@ class AuthControllerTest {
                         "password" : "Hung1403"
                     }
                     """;
-            UserResponseDto expected = new UserResponseDto(1L, "Tan Hung Nguyen",
+            UserResponseDto userDto = new UserResponseDto(1L, "Tan Hung Nguyen",
                     "hungnguyen","ADMINISTRATOR");
-
+            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.role").exists())
-                    .andExpect(jsonPath("$.password").doesNotExist())
-                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.id").exists())
+                    .andExpect(jsonPath("$.user_info.name").exists())
+                    .andExpect(jsonPath("$.user_info.username").exists())
+                    .andExpect(jsonPath("$.user_info.role").exists())
+                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.token").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 
@@ -352,7 +361,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" and id, username, name, role when last name contains space")
+        @DisplayName("Return \"Created\" and id, username, name, role, and jwt token when last name contains space")
         void shouldReturnCreated_whenLastNameContainsSpace() throws Exception {
             String json = """
                     {
@@ -363,22 +372,23 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto expected = new UserResponseDto(1L, "hung nguyen nguyen",
+            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen nguyen",
                     "hungnguyen","ADMINISTRATOR");
-
+            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.role").exists())
-                    .andExpect(jsonPath("$.password").doesNotExist())
-                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.id").exists())
+                    .andExpect(jsonPath("$.user_info.name").exists())
+                    .andExpect(jsonPath("$.user_info.username").exists())
+                    .andExpect(jsonPath("$.user_info.role").exists())
+                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.token").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
         }
@@ -507,7 +517,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" and id, name, username, role when username contains dot or underscore")
+        @DisplayName("Return \"Created\" and id, name, username, role, and jwt token when username contains dot or underscore")
         void shouldReturnCreated_whenUsernameContainsDotAndUnderscore() throws Exception {
             String json = """
                     {
@@ -518,8 +528,9 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto expected = new UserResponseDto(1L, "hung nguyen",
+            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen",
                     "hungnguyen_.","ADMINISTRATOR");
+            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -527,13 +538,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.role").exists())
-                    .andExpect(jsonPath("$.password").doesNotExist())
-                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.id").exists())
+                    .andExpect(jsonPath("$.user_info.name").exists())
+                    .andExpect(jsonPath("$.user_info.username").exists())
+                    .andExpect(jsonPath("$.user_info.role").exists())
+                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.token").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 
@@ -659,9 +671,8 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" when password has special characters" +
-                "when password contains special characters")
-        void shouldReturnBadRequest_whenPasswordContainsSpecialCharacters() throws Exception{
+        @DisplayName("Return \"Created\" when password contains special characters")
+        void shouldReturnCreated_whenPasswordContainsSpecialCharacters() throws Exception{
             String json = """
                     {
                         "firstName" : "hung",
@@ -671,9 +682,10 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto expected = new UserResponseDto(1L, "hung nguyen",
+            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen",
                     "hungnguyen_.","ADMINISTRATOR");
 
+            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -681,13 +693,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.role").exists())
-                    .andExpect(jsonPath("$.password").doesNotExist())
-                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.id").exists())
+                    .andExpect(jsonPath("$.user_info.name").exists())
+                    .andExpect(jsonPath("$.user_info.username").exists())
+                    .andExpect(jsonPath("$.user_info.role").exists())
+                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
+                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.token").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 

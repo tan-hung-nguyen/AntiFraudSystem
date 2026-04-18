@@ -1,8 +1,10 @@
 package com.tanhung.antifraudsystem.service;
 
+import com.tanhung.antifraudsystem.dto.request.AuthenticationRequest;
 import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
 import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
+import com.tanhung.antifraudsystem.dto.response.AuthenticationResponse;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
@@ -15,33 +17,32 @@ import com.tanhung.antifraudsystem.model.User;
 import com.tanhung.antifraudsystem.repo.RoleRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
     private final UserMapper userMapper;
     private final RoleRepo roleRepo;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    public AuthService(PasswordEncoder encoder, UserRepo userRepo,
-                       UserMapper userMapper, RoleRepo roleRepo){
-        this.passwordEncoder = encoder;
-        this.userRepo = userRepo;
-        this.userMapper = userMapper;
-        this.roleRepo = roleRepo;
-    }
-
-    public UserResponseDto register(UserRegistrationRequest userRequest) throws RegistrationException{
+    public Map<String, Object> register(UserRegistrationRequest userRequest) throws RegistrationException{
 
         if(userRequest == null) {
             throw new RegistrationException("Object cannot be null!", HttpStatus.BAD_REQUEST);
@@ -82,9 +83,23 @@ public class AuthService {
             user.setActive(false);
         }
         userRepo.save(user);
-        return userMapper.toDto(user);
+        String jwtToken = jwtService.generateToken(user);
+        Map<String, Object> response = new HashMap<>();
+        response.put("user_info", userMapper.toDto(user));
+        response.put("token", jwtToken);
+        return response;
     }
 
+    public AuthenticationResponse authenticate(AuthenticationRequest request){
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername().toLowerCase(), request.getPassword()));
+        User user = userRepo.findByUsername(request.getUsername().toLowerCase());
+        String jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse
+                .builder()
+                .token(jwtToken)
+                .build();
+    }
     public List<UserResponseDto> getAllUsers(){
         return userRepo.findAll(Sort.by("id"))
                 .stream()

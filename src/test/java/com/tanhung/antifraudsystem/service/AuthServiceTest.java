@@ -22,10 +22,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,12 +43,16 @@ class AuthServiceTest {
 
     private final UserMapper userMapper = new UserMapperImpl();
 
+    @Mock
+    private JwtService jwtService;
+    @Mock
+    private AuthenticationManager authenticationManager;
 
     private AuthService authService;
 
     @BeforeEach
     void setUpAuthService(){
-        authService = new AuthService(passwordEncoder, userRepo, userMapper, roleRepo);
+        authService = new AuthService(passwordEncoder, userRepo, userMapper, roleRepo, jwtService, authenticationManager);
     }
 
     @Nested
@@ -89,7 +95,7 @@ class AuthServiceTest {
             ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 
 
-            UserResponseDto actual = authService.register(requestUser);
+            Map<String, Object> actual = authService.register(requestUser);
 
             Mockito.verify(userRepo).save(captor.capture());
 
@@ -105,10 +111,12 @@ class AuthServiceTest {
             assertEquals("ADMINISTRATOR", userEntity.getRole().getRoleValue());
             assertTrue(userEntity.isActive());
 
+
             //Check if user dto return as desired
-            assertEquals("Hung Nguyen", actual.getName());
-            assertEquals("tanhung", actual.getUsername());
-            assertEquals("ADMINISTRATOR", actual.getRole());
+            UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
+            assertEquals("Hung Nguyen", actualDto.getName());
+            assertEquals("tanhung", actualDto.getUsername());
+            assertEquals("ADMINISTRATOR", actualDto.getRole());
 
         }
 
@@ -127,7 +135,7 @@ class AuthServiceTest {
 
             ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 
-            UserResponseDto actual = authService.register(requestUser);
+            Map<String, Object> actual = authService.register(requestUser);
 
             //Capture user entity object inside the method
             Mockito.verify(userRepo).save(captor.capture());
@@ -144,9 +152,10 @@ class AuthServiceTest {
             assertFalse(userEntity.isActive());
 
             //Check dto
-            assertEquals("Hung Nguyen", actual.getName());
-            assertEquals("tanhung", actual.getUsername());
-            assertEquals("MERCHANT", actual.getRole());
+            UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
+            assertEquals("Hung Nguyen", actualDto.getName());
+            assertEquals("tanhung", actualDto.getUsername());
+            assertEquals("MERCHANT", actualDto.getRole());
 
             Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
             Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
