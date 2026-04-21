@@ -12,6 +12,7 @@ import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -23,23 +24,18 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Service
+@RequiredArgsConstructor
 public class AntiFraudService {
 
     private final SuspiciousIPRepo suspiciousIPRepo;
     private final StolenCardRepo stolenCardRepo;
-
-    @Autowired
-    public AntiFraudService(SuspiciousIPRepo suspiciousIPRepo, StolenCardRepo stolenCardRepo){
-        this.suspiciousIPRepo = suspiciousIPRepo;
-        this.stolenCardRepo = stolenCardRepo;
-    }
 
     public ActionResponse checkRequest(TransactionRequest request) throws InvalidAmountException{
 
         String result;
         Set<String> infos = new TreeSet<>();
         if(request.getAmount().compareTo(new BigDecimal("1")) < 0)
-            throw new InvalidAmountException("Your amount must be at least 1 dollar!");
+            throw new InvalidAmountException("Your amount must be at least 1 dollar!", HttpStatus.BAD_REQUEST);
 
         if(request.getAmount().compareTo(new BigDecimal(200)) <= 0){
             result = "ALLOWED";

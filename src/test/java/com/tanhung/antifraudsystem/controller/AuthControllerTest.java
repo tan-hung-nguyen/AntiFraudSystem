@@ -57,7 +57,7 @@ class AuthControllerTest {
     @DisplayName("POST /api/auth/register")
     class registerUserTest {
         @Test
-        @DisplayName("Return \"Created\" status, id, name, username, role, and jwt token " +
+        @DisplayName("Return \"Created 201\" status, id, name, username, role, and jwt token " +
                 "when providing 4 required fields (firstName, lastName, username, password)")
         void shouldReturnCreated_whenRegisterSuccessfully() throws Exception {
             String json = """
@@ -91,7 +91,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and first name error, timestamp, status code when missing first name")
+        @DisplayName("Return \"Bad Request 400\" and first name error, timestamp, status code when missing first name")
         void shouldReturnBadRequest_whenFirstNameIsMissing() throws Exception {
             String json = """
                     {
@@ -114,7 +114,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and last name error, timestamp, status code when missing last name")
+        @DisplayName("Return \"Bad Request 400\" and last name error, timestamp, status code when missing last name")
         void shouldReturnBadRequest_whenLastNameIsMissing() throws Exception {
             String json = """
                     {
@@ -137,7 +137,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and username error, timestamp, status code when missing username")
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code when missing username")
         void shouldReturnBadRequest_whenUsernameIsMissing() throws Exception {
             String json = """
                     {
@@ -160,7 +160,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and password error, timestamp, status code when missing password")
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code when missing password")
         void shouldReturnBadRequest_whenPasswordIsMissing() throws Exception {
             String json = """
                     {
@@ -183,7 +183,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and first name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and first name error, timestamp, status code " +
                 "when first name's length is less than 2 letters")
         void shouldReturnBadRequest_whenFirstNameIsLessThanTwoLetters() throws Exception {
             String json = """
@@ -207,7 +207,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and first name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and first name error, timestamp, status code " +
                 "when first name's length is longer than 30 letters")
         void shouldReturnBadRequest_whenFirstNameIsOverThirtyLetters() throws Exception {
             String json = """
@@ -231,7 +231,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" and register successfully when first name contains space")
+        @DisplayName("Return \"Created 201\" and register successfully when first name contains space")
         void shouldReturnCreated_whenFirstNameContainSpace() throws Exception {
             String json = """
                     {
@@ -262,7 +262,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and first name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and first name error, timestamp, status code " +
                 "when first name contains numbers")
         void shouldReturnBadRequest_whenFirstNameContainsNumbers() throws Exception {
             String json = """
@@ -288,7 +288,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and first name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and first name error, timestamp, status code " +
                 "when first name contains special characters")
         void shouldReturnBadRequest_whenFirstNameContainsSpecialCharacters() throws Exception {
             String json = """
@@ -312,7 +312,7 @@ class AuthControllerTest {
 
 
         @Test
-        @DisplayName("Return \"Bad Request\" and last name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and last name error, timestamp, status code " +
                 "when last name's length is less than 2 letters")
         void shouldReturnBadRequest_whenLastNameIsLessThanTwoLetters() throws Exception {
             String json = """
@@ -336,7 +336,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and last name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and last name error, timestamp, status code " +
                 "when last name's length is longer than 30 letters")
         void shouldReturnBadRequest_whenLastNameIsOverThirtyLetters() throws Exception {
             String json = """
@@ -361,7 +361,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" and id, username, name, role, and jwt token when last name contains space")
+        @DisplayName("Return \"Created 201\" and id, username, name, role, and jwt token when last name contains space")
         void shouldReturnCreated_whenLastNameContainsSpace() throws Exception {
             String json = """
                     {
@@ -394,7 +394,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and last name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and last name error, timestamp, status code " +
                 "when last name contains numbers")
         void shouldReturnBadRequest_whenLastNameContainsNumbers() throws Exception {
             String json = """
@@ -419,7 +419,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and last name error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and last name error, timestamp, status code " +
                 "when last name contains special characters")
         void shouldReturnBadRequest_whenLastNameContainsSpecialCharacters() throws Exception {
             String json = """
@@ -443,7 +443,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and username error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code " +
                 "when username's length is less than 5 characters")
         void shouldReturnBadRequest_whenUsernameIsLessThanFiveCharacters() throws Exception {
             String json = """
@@ -467,7 +467,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and username error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code " +
                 "when username's length is longer than 30 characters")
         void shouldReturnBadRequest_whenUsernameIsOverThirtyCharacters() throws Exception {
             String json = """
@@ -492,7 +492,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and username error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code " +
                 "when username contains special characters")
         void shouldReturnBadRequest_whenUsernameContainsSpecialCharacters() throws Exception {
             String json = """
@@ -517,7 +517,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" and id, name, username, role, and jwt token when username contains dot or underscore")
+        @DisplayName("Return \"Created 201\" and id, name, username, role, and jwt token when username contains dot or underscore")
         void shouldReturnCreated_whenUsernameContainsDotAndUnderscore() throws Exception {
             String json = """
                     {
@@ -550,7 +550,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and username error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code " +
                 "when username contains space")
         void shouldReturnBadRequest_whenUsernameContainsSpaces() throws Exception {
             String json = """
@@ -575,7 +575,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and password error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code " +
                 "when password does not have at least 1 uppercase")
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneUppercase() throws Exception{
             String json = """
@@ -599,7 +599,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and password error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code " +
                 "when password does not have at least 1 number")
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneNumber() throws Exception{
             String json = """
@@ -623,7 +623,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and password error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code " +
                 "when password does not have at least 1 lowercase")
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneLowercase() throws Exception{
             String json = """
@@ -647,7 +647,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and email error, timestamp, status code " +
+        @DisplayName("Return \"Bad Request 400\" and email error, timestamp, status code " +
                 "when email format is invalid")
         void shouldReturnBadRequest_whenEmailFormatIsInvalid() throws Exception {
             String json = """
@@ -671,7 +671,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" when password contains special characters")
+        @DisplayName("Return \"Created 201\" when password contains special characters")
         void shouldReturnCreated_whenPasswordContainsSpecialCharacters() throws Exception{
             String json = """
                     {
@@ -705,7 +705,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Conflict\" and details error, status code, timestamp " +
+        @DisplayName("Return \"Conflict 409\" and details error, status code, timestamp " +
                 "when email is already used")
         void ShouldReturnConflict_whenEmailIsAlreadyUsed() throws Exception {
             String json = """
@@ -735,7 +735,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and phone number error, status code, timestamp " +
+        @DisplayName("Return \"Bad Request 400\" and phone number error, status code, timestamp " +
                 "when phone number contains letters")
         void shouldReturnBadRequest_whenPhoneNumberContainsLetters() throws Exception {
             String json = """
@@ -761,7 +761,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and phone number error, status code, timestamp " +
+        @DisplayName("Return \"Bad Request 400\" and phone number error, status code, timestamp " +
                 "when phone number is not exact 10 digits")
         void shouldReturnBadRequest_whenPhoneNumberDoesNotContainTenDigits() throws Exception {
             String json = """
@@ -787,7 +787,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Created\" when phone number contains exact 10 digits")
+        @DisplayName("Return \"Created 201\" when phone number contains exact 10 digits")
         void shouldReturnCreated_whenPhoneNumberFormatIsCorrect() throws Exception {
             String json = """
                     {
@@ -807,7 +807,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Conflict\" phone number error, status code, timestamp " +
+        @DisplayName("Return \"Conflict 409\" phone number error, status code, timestamp " +
                 "when phone number is already used")
         void shouldReturnConflict_whenPhoneNumberIsAlreadyUsed() throws Exception {
             String json = """
@@ -840,7 +840,7 @@ class AuthControllerTest {
     @DisplayName("GET /api/auth/list")
     class getListUserTest {
         @Test
-        @DisplayName("Return \"Ok\" status and list of users when requesting list")
+        @DisplayName("Return \"Ok 200\" status and list of users when requesting list")
         void shouldReturnOk_whenGetListOfUsersSuccessfullyWithUser() throws Exception {
             UserResponseDto mock = new UserResponseDto(1L, "hung", "hungnguyen", "ADMINISTRATOR");
             UserResponseDto mock1 = new UserResponseDto(1L, "hung", "hungnguyen", "MERCHANT");
@@ -855,7 +855,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Ok\" status and empty list when no users")
+        @DisplayName("Return \"Ok 200\" status and empty list when no users")
         void shouldReturnOk_whenGetListOfUsersSuccessfullyWithNoUser() throws Exception{
             Mockito.when(authService.getAllUsers()).thenReturn(List.of());
 
@@ -870,7 +870,7 @@ class AuthControllerTest {
     class deleteUserTest {
 
         @Test
-        @DisplayName("Return \"Ok\" status and deletion response when deleting successfully")
+        @DisplayName("Return \"Ok 200\" status and deletion response when deleting successfully")
         void shouldReturnOk_whenDeletingUserSuccessfully() throws Exception {
 
             Mockito.when(authService.deleteUser(Mockito.any()))
@@ -885,7 +885,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and throw UsernameNotFound exception when username not found")
+        @DisplayName("Return \"Bad Request 400\" and throw UsernameNotFound exception when username not found")
         void shouldReturnBadRequest_whenUsernameNotFound() throws Exception {
 
             Mockito.when(authService.deleteUser(Mockito.any()))
@@ -905,7 +905,7 @@ class AuthControllerTest {
     @DisplayName("PUT /api/auth/role")
     class changeRoleTest {
         @Test
-        @DisplayName("Return \"Ok\" status and user info that was changed when changing user role successfully")
+        @DisplayName("Return \"Ok 200\" status and user info that was changed when changing user role successfully")
         void shouldReturnOk_whenChangingRoleSuccessfully() throws Exception {
 
             String json = """
@@ -932,7 +932,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when missing username")
+        @DisplayName("Return \"Bad Request 400\" and error response when missing username")
         void shouldReturnBadRequest_whenMissingUsername() throws Exception{
             String json = """
                     {
@@ -953,7 +953,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when missing role")
+        @DisplayName("Return \"Bad Request 400\" and error response when missing role")
         void shouldReturnBadRequest_whenMissingRole() throws Exception{
             String json = """
                     {
@@ -974,7 +974,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when role is blank or space")
+        @DisplayName("Return \"Bad Request 400\" and error response when role is blank or space")
         void shouldReturnBadRequest_whenRoleIsBlank() throws Exception{
             String json = """
                     {
@@ -996,7 +996,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when username is blank or space")
+        @DisplayName("Return \"Bad Request 400\" and error response when username is blank or space")
         void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception{
             String json = """
                     {
@@ -1022,7 +1022,7 @@ class AuthControllerTest {
     @DisplayName("PUT /api/auth/access")
     class activationUserTest{
         @Test
-        @DisplayName("Return \"Ok\" and confirmation when activating user successfully")
+        @DisplayName("Return \"Ok 200\" and confirmation when activating user successfully")
         void shouldReturnOk_whenActivatingUserSuccessfully() throws Exception{
 
             String json = """
@@ -1045,7 +1045,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when missing username")
+        @DisplayName("Return \"Bad Request 400\" and error response when missing username")
         void shouldReturnBadRequest_whenMissingUsername() throws Exception{
 
             String json = """
@@ -1066,7 +1066,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when username is blank")
+        @DisplayName("Return \"Bad Request 400\" and error response when username is blank")
         void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception{
 
             String json = """
@@ -1088,7 +1088,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when missing operation")
+        @DisplayName("Return \"Bad Request 400\" and error response when missing operation")
         void shouldReturnBadRequest_whenMissingOperation() throws Exception{
 
             String json = """
@@ -1109,7 +1109,7 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Return \"Bad Request\" and error response when operation is blank")
+        @DisplayName("Return \"Bad Request 400\" and error response when operation is blank")
         void shouldReturnBadRequest_whenOperationIsBlank() throws Exception{
 
             String json = """

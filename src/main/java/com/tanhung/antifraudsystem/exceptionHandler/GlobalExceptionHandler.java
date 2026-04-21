@@ -4,6 +4,7 @@ import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
 import com.tanhung.antifraudsystem.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,7 +58,17 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(error);
     }
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFormatException(NumberFormatException e){
 
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setDetails(e.getMessage());
+        error.setTimestamp(Instant.now());
+
+        return ResponseEntity.badRequest().body(error);
+    }
     @ExceptionHandler(InvalidAmountException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAmountException(InvalidAmountException e) {
         ErrorResponse error = new ErrorResponse();
@@ -105,4 +116,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getStatus()).body(error);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        ErrorResponse error = new ErrorResponse();
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setDetails(e.getMessage());
+        error.setTimestamp(Instant.now());
+
+        return ResponseEntity.badRequest().body(error);
+    }
 }

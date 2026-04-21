@@ -21,12 +21,12 @@ public class TransactionRequest{
                     message = "Your transaction must be at least 1 dollar!")
         private BigDecimal amount;
 
-        @NotBlank(message = "Ip must be provided")
+        @NotNull(message = "Ip address can't be null!")
         @Pattern(regexp = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
                 message = "Your ip in wrong format!")
         private String ip;
 
-        @NotBlank(message = "Card number needed to be processed!")
-        @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits")
+        @NotNull(message = "Card number can't be null!")
+        @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits, no spaces!")
         private String number;
 }
