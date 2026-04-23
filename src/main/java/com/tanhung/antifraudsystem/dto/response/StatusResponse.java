@@ -1,4 +1,12 @@
 package com.tanhung.antifraudsystem.dto.response;
 
-public record StatusResponse(String status) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+public class StatusResponse {
+    private String status;
 }

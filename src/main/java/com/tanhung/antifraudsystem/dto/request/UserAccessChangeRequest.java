@@ -1,7 +1,16 @@
 package com.tanhung.antifraudsystem.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-public record UserAccessChangeRequest(@NotBlank(message = "Username must not be null or blank") String username,
-                                      @NotBlank(message = "Operation must not be null or blank") String operation) {
+@Getter
+@Setter
+@AllArgsConstructor
+public class UserAccessChangeRequest{
+    @NotBlank(message = "Username must not be null or blank")
+    private String username;
+    @NotBlank(message = "Operation must not be null or blank")
+    private String operation;
 }

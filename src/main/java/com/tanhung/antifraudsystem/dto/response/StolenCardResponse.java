@@ -1,17 +1,14 @@
 package com.tanhung.antifraudsystem.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class IPResponse{
+public class StolenCardResponse {
 
     private Long id;
-
-    @JsonProperty(namespace = "ip_address")
-    private String ip;
+    @JsonProperty(namespace = "card_number")
+    private String number;
 }

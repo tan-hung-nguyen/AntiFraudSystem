@@ -21,9 +21,6 @@ public class SuspiciousIPAddress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Pattern(regexp = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
-    message = "Your ip in wrong format!")
-    @NotNull(message = "IP address must not be null!")
     @Column(nullable = false, unique = true)
     private String ip;
 
