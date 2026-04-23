@@ -285,8 +285,8 @@ class AuthServiceTest {
             DeleteStatusResponse actual = authService.deleteUser("test");
 
             Mockito.verify(userRepo).deleteUserByUsername(Mockito.any());
-            assertEquals("test", actual.username());
-            assertEquals("Deleted successfully!", actual.status());
+            assertEquals("test", actual.getUsername());
+            assertEquals("Deleted successfully!", actual.getStatus());
         }
 
         @Test
@@ -423,7 +423,7 @@ class AuthServiceTest {
 
             StatusResponse actual = authService.setUserActiveStatus(userAccessChangeRequest);
 
-            assertEquals("User test unlocked!", actual.status());
+            assertEquals("User test unlocked!", actual.getStatus());
             assertTrue(userFound.isActive());
         }
 
@@ -436,7 +436,7 @@ class AuthServiceTest {
 
             StatusResponse actual = authService.setUserActiveStatus(userAccessChangeRequest);
 
-            assertEquals("User test locked!", actual.status());
+            assertEquals("User test locked!", actual.getStatus());
             assertFalse(userFound.isActive());
         }
 

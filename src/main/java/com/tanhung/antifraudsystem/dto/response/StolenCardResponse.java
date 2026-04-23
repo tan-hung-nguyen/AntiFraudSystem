@@ -9,6 +9,5 @@ import lombok.Setter;
 public class StolenCardResponse {
 
     private Long id;
-    @JsonProperty(namespace = "card_number")
-    private String number;
+    private String cardNumber;
 }

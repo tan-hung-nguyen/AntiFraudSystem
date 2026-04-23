@@ -12,6 +12,5 @@ public class IPResponse{
 
     private Long id;
 
-    @JsonProperty(namespace = "ip_address")
-    private String ip;
+    private String ipAddress;
 }

@@ -16,28 +16,24 @@ import org.hibernate.validator.constraints.Length;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class UserRegistrationRequest {
 
-    @JsonProperty("first_name")
     @NotEmpty(message = "First name must not be empty!")
     @Pattern(regexp = "^[\\p{L}\\s'-]+$",
             message = "First name must contain only letters!")
     @Size(min = 2, max = 30)
     private String firstName;
 
-    @JsonProperty("last_name")
     @NotEmpty(message = "Last name must not be empty!")
     @Pattern(regexp = "^[\\p{L}\\s'-]+$",
             message = "Last name must contain only letters!")
     @Size(min = 2, max = 30)
     private String lastName;
 
-    @JsonProperty("username")
     @NotEmpty(message = "Username must not be empty!")
     @Size(min = 5, max = 30)
     @Pattern(regexp = "^[a-zA-Z0-9._]+$",
             message = "Username must contain only letters, numbers, dot, underscore!")
     private String username;
 
-    @JsonProperty("password")
     @NotEmpty(message = "Password must not be empty!")
     @Size(min = 5, max = 50)
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).+$",

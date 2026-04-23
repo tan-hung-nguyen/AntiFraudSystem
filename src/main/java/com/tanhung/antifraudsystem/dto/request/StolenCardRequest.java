@@ -11,6 +11,5 @@ import lombok.Setter;
 public class StolenCardRequest {
     @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits")
     @NotNull(message = "Your card number must not be null!")
-    @JsonProperty(namespace = "card_number")
     private String cardNumber;
 }

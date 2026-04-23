@@ -119,47 +119,47 @@ public class AuthService {
 
     @Transactional
     public UserResponseDto changeRole(UserChangeRoleRequest user) throws UsernameNotFoundException, RoleChangeException{
-        User userFound = userRepo.findByUsername(user.username().toLowerCase());
+        User userFound = userRepo.findByUsername(user.getUsername().toLowerCase());
         if(userFound == null){
             throw new UsernameNotFoundException("Username not found!");
         }
 
-        if(!user.role().equalsIgnoreCase("support") &&
-        !user.role().equalsIgnoreCase("merchant")){
+        if(!user.getRole().equalsIgnoreCase("support") &&
+        !user.getRole().equalsIgnoreCase("merchant")){
             throw new RoleChangeException("Only Support or Merchant role are available!", HttpStatus.BAD_REQUEST);
         }
 
-        if(user.role().equalsIgnoreCase(userFound.getRole().getRoleValue())){
+        if(user.getRole().equalsIgnoreCase(userFound.getRole().getRoleValue())){
             throw new RoleChangeException(userFound.getUsername() + " has been provided this role!", HttpStatus.CONFLICT);
         }
 
         if(userFound.getRole().getRoleValue().equalsIgnoreCase("administrator")){
             throw new RoleChangeException("This are admin! You cannot make change role on admin.", HttpStatus.BAD_REQUEST);
         }
-        userFound.getRole().setRoleValue(user.role().toUpperCase());
+        userFound.getRole().setRoleValue(user.getRole().toUpperCase());
         return userMapper.toDto(userFound);
     }
 
     @Transactional
     public StatusResponse setUserActiveStatus(UserAccessChangeRequest request) throws UsernameNotFoundException, UserActiveStatusException {
-        User found = userRepo.findByUsername(request.username().toLowerCase());
+        User found = userRepo.findByUsername(request.getUsername().toLowerCase());
         if(found == null) throw new UsernameNotFoundException("User not found!");
         if(found.getRole().getRoleValue().equalsIgnoreCase("administrator")){
             throw new UserActiveStatusException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
         }
 
-        if(found.isActive() && request.operation().equalsIgnoreCase("unlock")){
+        if(found.isActive() && request.getOperation().equalsIgnoreCase("unlock")){
             throw new UserActiveStatusException("User " + found.getUsername() + " has been already activated!",
                                             HttpStatus.BAD_REQUEST);
-        } else if(!found.isActive() && request.operation().equalsIgnoreCase("lock")){
+        } else if(!found.isActive() && request.getOperation().equalsIgnoreCase("lock")){
             throw new UserActiveStatusException("User " + found.getUsername() + " has been already deactivated!",
                                             HttpStatus.BAD_REQUEST);
         }
 
-        if(request.operation().equalsIgnoreCase("unlock")){
+        if(request.getOperation().equalsIgnoreCase("unlock")){
             found.setActive(true);
             return new StatusResponse("User " + found.getUsername() + " unlocked!");
-        } else if(request.operation().equalsIgnoreCase("lock")){
+        } else if(request.getOperation().equalsIgnoreCase("lock")){
             found.setActive(false);
             return new StatusResponse("User " + found.getUsername() + " locked!");
         } else {

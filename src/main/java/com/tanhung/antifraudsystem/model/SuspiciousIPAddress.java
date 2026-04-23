@@ -22,6 +22,6 @@ public class SuspiciousIPAddress {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String ip;
+    private String ipAddress;
 
 }
