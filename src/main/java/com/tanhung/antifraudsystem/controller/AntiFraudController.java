@@ -7,8 +7,6 @@ import com.tanhung.antifraudsystem.dto.response.ActionResponse;
 import com.tanhung.antifraudsystem.dto.response.IPResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StolenCardResponse;
-import com.tanhung.antifraudsystem.model.StolenCard;
-import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import com.tanhung.antifraudsystem.service.AntiFraudService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
