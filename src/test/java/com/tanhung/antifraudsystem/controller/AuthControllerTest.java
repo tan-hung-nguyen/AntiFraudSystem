@@ -834,6 +834,128 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.details").exists());
 
         }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when userRequest object is null")
+        void shouldReturnBadRequest_whenUserRequestObjectIsNull() throws Exception{
+            Mockito.when(authService.register(Mockito.any()))
+                    .thenThrow(new RegistrationException("Object must not be null!", HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(post("/api/auth/register")
+                    .with(csrf()))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when username starts with \"admin\" or \"root\"")
+        void shouldReturnBadRequest_whenUsernameStartsWithAdminOrRoot() throws Exception {
+            String json = """
+                    {
+                        "firstName" : "hung",
+                        "lastName" : "nguyen",
+                        "username" : "adminnguyen",
+                        "password" : "Hung1403",
+                        "phoneNumber" : "0123456789"
+                    }
+                    """;
+            Mockito.when(authService.register(Mockito.any()))
+                    .thenThrow(new RegistrationException("Username cannot start with reserved word!",
+                                                            HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(post("/api/auth/register")
+                    .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Conflict 409\" when username is taken")
+        void shouldReturnConflict_whenUsernameIsTaken() throws Exception{
+            String json = """
+                    {
+                        "firstName" : "hung",
+                        "lastName" : "nguyen",
+                        "username" : "hungnguyen",
+                        "password" : "Hung1403",
+                        "phoneNumber" : "0123456789"
+                    }
+                    """;
+            Mockito.when(authService.register(Mockito.any()))
+                    .thenThrow(new RegistrationException("Username is already taken!", HttpStatus.CONFLICT));
+            mockMvc.perform(post("/api/auth/register")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.statusCode").value(409))
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Conflict 409\" when email is already in used")
+        void shouldReturnConflict_whenEmailIsAlreadyUsed() throws Exception{
+            String json = """
+                    {
+                        "firstName" : "hung",
+                        "lastName" : "nguyen",
+                        "username" : "hungnguyen",
+                        "password" : "Hung1403",
+                        "email" : "test@gmail.com"
+                    }
+                    """;
+            Mockito.when(authService.register(Mockito.any()))
+                    .thenThrow(new RegistrationException("Email is already in used!", HttpStatus.CONFLICT));
+            mockMvc.perform(post("/api/auth/register")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.statusCode").value(409))
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Conflict 409\" when phone number is already in used")
+        void shouldReturnConflict_whenPhoneNumberIsAlreadyInUsed() throws Exception{
+            String json = """
+                    {
+                        "firstName" : "hung",
+                        "lastName" : "nguyen",
+                        "username" : "hungnguyen",
+                        "password" : "Hung1403",
+                        "phoneNumber" : "0123456789"
+                    }
+                    """;
+            Mockito.when(authService.register(Mockito.any()))
+                    .thenThrow(new RegistrationException("Phone number is already in used!", HttpStatus.CONFLICT));
+            mockMvc.perform(post("/api/auth/register")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.statusCode").value(409))
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
     }
 
     @Nested
