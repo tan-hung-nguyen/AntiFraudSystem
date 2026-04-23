@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tools.jackson.databind.exc.InvalidFormatException;
@@ -19,6 +20,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ResponseEntity<ErrorResponse> handleJacksonException(Throwable cause){
+        ErrorResponse error = new ErrorResponse();
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        error.setTimestamp(Instant.now());
+        if(cause instanceof UnrecognizedPropertyException e){
+            error.setDetails("Unknown field: " + e.getPropertyName());
+        } else if (cause instanceof InvalidFormatException e){
+            error.setDetails(e.getPath().getFirst().getPropertyName() + ": Invalid format!");
+        } else {
+            error.setDetails(cause.getMessage());
+        }
+
+        return ResponseEntity.badRequest().body(error);
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         Map<String, String> errors = new HashMap<>();
@@ -46,20 +62,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-
-    @ExceptionHandler(InvalidFormatException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidFormatException(InvalidFormatException e){
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails(e.getPath().getFirst().getPropertyName() +  ": Invalid Format!");
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.badRequest().body(error);
-    }
     @ExceptionHandler(NumberFormatException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidFormatException(NumberFormatException e){
+    public ResponseEntity<ErrorResponse> handleInvalidNumberFormatException(NumberFormatException e){
 
         ErrorResponse error = new ErrorResponse();
         error.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -80,17 +84,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseEntity<ErrorResponse> handleUnrecognizedPropertyException(UnrecognizedPropertyException e) {
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setTimestamp(Instant.now());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails("Unknown field: " + e.getPropertyName());
-
-        return ResponseEntity.badRequest().body(error);
-    }
 
     @ExceptionHandler({UserActiveStatusException.class, RegistrationException.class, RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
@@ -118,12 +111,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.badRequest().body(error);
+        return handleJacksonException(e.getCause());
     }
 }

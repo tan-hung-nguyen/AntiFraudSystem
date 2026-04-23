@@ -8,6 +8,8 @@ import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.RegistrationException;
+import com.tanhung.antifraudsystem.exception.RoleChangeException;
+import com.tanhung.antifraudsystem.exception.UserActiveStatusException;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AuthService;
 import com.tanhung.antifraudsystem.service.MyUserDetailsService;
@@ -37,6 +39,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,13 +65,13 @@ class AuthControllerTest {
         void shouldReturnCreated_whenRegisterSuccessfully() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
-            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen", "hungnguyen", "ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN", "testusername", "ADMINISTRATOR");
             Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken" );
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
@@ -95,9 +98,9 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenFirstNameIsMissing() throws Exception {
             String json = """
                     {
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
 
@@ -118,9 +121,9 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenLastNameIsMissing() throws Exception {
             String json = """
                     {
-                        "firstName" : "Hung",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
 
@@ -141,9 +144,9 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameIsMissing() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "testFN",
+                        "lastName" : "testLN",
+                        "password" : "Test1234"
                     }
                     """;
 
@@ -164,9 +167,9 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPasswordIsMissing() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername"
                     }
                     """;
 
@@ -188,10 +191,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenFirstNameIsLessThanTwoLetters() throws Exception {
             String json = """
                     {
-                        "firstName" : "h",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "t",
+                        "lastName" : "testLN",
+                        "username" : "testusername",
+                        "password" : "Test123"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -213,9 +216,9 @@ class AuthControllerTest {
             String json = """
                     {
                         "firstName" : "asdsdawadwadwadsadgdfgdqwdadsadawadwagdds",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "lastName" : "testLN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -235,14 +238,14 @@ class AuthControllerTest {
         void shouldReturnCreated_whenFirstNameContainSpace() throws Exception {
             String json = """
                     {
-                        "firstName" : "Tan Hung",
-                        "lastName" : "Nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
-            UserResponseDto userDto = new UserResponseDto(1L, "Tan Hung Nguyen",
-                    "hungnguyen","ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestFN TestLN",
+                    "testusername","ADMINISTRATOR");
             Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
@@ -267,10 +270,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenFirstNameContainsNumbers() throws Exception {
             String json = """
                     {
-                        "firstName" : "Hung14",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "Test12",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
 
@@ -293,10 +296,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenFirstNameContainsSpecialCharacters() throws Exception {
             String json = """
                     {
-                        "firstName" : "Hung!@#$",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "Test!@#$",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1203"
                     }
                     """;
 
@@ -317,10 +320,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenLastNameIsLessThanTwoLetters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "n",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "t",
+                        "username" : "testusername",
+                        "password" : "Test1403"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -341,10 +344,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenLastNameIsOverThirtyLetters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyenasdasdasdwadwadsaddfgdfgdfgafsdf",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "Testasdasdasdwadwadsaddfgdfgdfgafsdf",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
 
@@ -365,15 +368,15 @@ class AuthControllerTest {
         void shouldReturnCreated_whenLastNameContainsSpace() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "testFN",
+                        "lastName" : "TestLN TestLn",
+                        "username" : "testusername",
+                        "password" : "Test1234"
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen nguyen",
-                    "hungnguyen","ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN TestLN",
+                    "testusername","ADMINISTRATOR");
             Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
@@ -399,10 +402,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenLastNameContainsNumbers() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen123",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN12",
+                        "username" : "testusername",
+                        "password" : "test123"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -424,10 +427,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenLastNameContainsSpecialCharacters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
+                        "firstName" : "TestFN",
                         "lastName" : "!@#$%^&*()_=",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403"
+                        "username" : "testusername",
+                        "password" : "Test1233"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -448,10 +451,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameIsLessThanFiveCharacters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "tan",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "test",
+                        "password" : "Test123"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -472,10 +475,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameIsOverThirtyCharacters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyenasdawdadwadafasghfsafdsgfdgfd",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusernameasdawdadwadafasghfsafdsgfdgfd",
+                        "password" : "Test123"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -497,10 +500,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameContainsSpecialCharacters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
                         "username" : "!@#$%^&*()-+",
-                        "password" : "Hung1403"
+                        "password" : "Test123"
                     }
                     """;
             mockMvc.perform(post("/api/auth/register")
@@ -521,15 +524,15 @@ class AuthControllerTest {
         void shouldReturnCreated_whenUsernameContainsDotAndUnderscore() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen_.",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername_.",
+                        "password" : "Test123"
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen",
-                    "hungnguyen_.","ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN",
+                    "testusername_.","ADMINISTRATOR");
             Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
@@ -555,10 +558,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameContainsSpaces() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hung nguyen",
-                        "password" : "Hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "test username",
+                        "password" : "Test103"
                     }
                     """;
 
@@ -580,10 +583,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneUppercase() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "hung1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "test103"
                     }
                     """;
 
@@ -604,10 +607,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneNumber() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test"
                     }
                     """;
 
@@ -628,10 +631,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPasswordDoesNotHaveAtLeastOneLowercase() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "HUNG1403"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "TEST1234"
                     }
                     """;
 
@@ -652,11 +655,11 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenEmailFormatIsInvalid() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
-                        "email" : "ngtanhung.com"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test123",
+                        "email" : "test.com"
                     }
                     """;
 
@@ -675,15 +678,15 @@ class AuthControllerTest {
         void shouldReturnCreated_whenPasswordContainsSpecialCharacters() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403!@#$%"
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test3!@#$%"
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "hung nguyen",
-                    "hungnguyen_.","ADMINISTRATOR");
+            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN",
+                    "testusername","ADMINISTRATOR");
 
             Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
@@ -710,10 +713,10 @@ class AuthControllerTest {
         void ShouldReturnConflict_whenEmailIsAlreadyUsed() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "email" : "test1@gmail.com"
                     }
                     """;
@@ -740,10 +743,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPhoneNumberContainsLetters() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "gsawefjajf"
                     }
                     """;
@@ -766,10 +769,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenPhoneNumberDoesNotContainTenDigits() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "12314"
                     }
                     """;
@@ -791,10 +794,10 @@ class AuthControllerTest {
         void shouldReturnCreated_whenPhoneNumberFormatIsCorrect() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "0123456789"
                     }
                     """;
@@ -812,10 +815,10 @@ class AuthControllerTest {
         void shouldReturnConflict_whenPhoneNumberIsAlreadyUsed() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "0123456789"
                     }
                     """;
@@ -838,11 +841,21 @@ class AuthControllerTest {
         @Test
         @DisplayName("Return \"Bad Request 400\" when userRequest object is null")
         void shouldReturnBadRequest_whenUserRequestObjectIsNull() throws Exception{
-            Mockito.when(authService.register(Mockito.any()))
+            String json = """
+                    {
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
+                    }
+                    """;
+            Mockito.when(authService.register(null))
                     .thenThrow(new RegistrationException("Object must not be null!", HttpStatus.BAD_REQUEST));
 
             mockMvc.perform(post("/api/auth/register")
-                    .with(csrf()))
+                    .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.error").value("Bad Request"))
@@ -856,10 +869,10 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenUsernameStartsWithAdminOrRoot() throws Exception {
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "adminnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "adminusername",
+                        "password" : "Test1412",
                         "phoneNumber" : "0123456789"
                     }
                     """;
@@ -884,10 +897,10 @@ class AuthControllerTest {
         void shouldReturnConflict_whenUsernameIsTaken() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "0123456789"
                     }
                     """;
@@ -910,10 +923,10 @@ class AuthControllerTest {
         void shouldReturnConflict_whenEmailIsAlreadyUsed() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1203",
                         "email" : "test@gmail.com"
                     }
                     """;
@@ -936,10 +949,10 @@ class AuthControllerTest {
         void shouldReturnConflict_whenPhoneNumberIsAlreadyInUsed() throws Exception{
             String json = """
                     {
-                        "firstName" : "hung",
-                        "lastName" : "nguyen",
-                        "username" : "hungnguyen",
-                        "password" : "Hung1403",
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "testusername",
+                        "password" : "Test1234",
                         "phoneNumber" : "0123456789"
                     }
                     """;
@@ -956,6 +969,31 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.details").exists());
 
         }
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when unknown field provided")
+        void shouldReturnBadRequest_whenUnknownFieldProvided() throws Exception {
+            String json = """
+                    {
+                        "firstName" : "TestFN",
+                        "lastName" : "TestLN",
+                        "username" : "adminusername",
+                        "password" : "Test1412",
+                        "unknown" : "testUnknown"
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/register")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
     }
 
     @Nested
@@ -964,8 +1002,8 @@ class AuthControllerTest {
         @Test
         @DisplayName("Return \"Ok 200\" status and list of users when requesting list")
         void shouldReturnOk_whenGetListOfUsersSuccessfullyWithUser() throws Exception {
-            UserResponseDto mock = new UserResponseDto(1L, "hung", "hungnguyen", "ADMINISTRATOR");
-            UserResponseDto mock1 = new UserResponseDto(1L, "hung", "hungnguyen", "MERCHANT");
+            UserResponseDto mock = new UserResponseDto(1L, "test1", "test1", "ADMINISTRATOR");
+            UserResponseDto mock1 = new UserResponseDto(1L, "test2", "test2", "MERCHANT");
 
             Mockito.when(authService.getAllUsers()).thenReturn(List.of(mock, mock1));
 
@@ -996,12 +1034,12 @@ class AuthControllerTest {
         void shouldReturnOk_whenDeletingUserSuccessfully() throws Exception {
 
             Mockito.when(authService.deleteUser(Mockito.any()))
-                    .thenReturn(new DeleteStatusResponse("hungnguyen", "Deleted successfully!"));
+                    .thenReturn(new DeleteStatusResponse("test", "Deleted successfully!"));
 
-            mockMvc.perform(delete("/api/auth/user/hungnguyen")
+            mockMvc.perform(delete("/api/auth/user/test")
                             .with(csrf()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.username").value("hungnguyen"))
+                    .andExpect(jsonPath("$.username").value("test"))
                     .andExpect(jsonPath("$.status").exists());
 
         }
@@ -1013,7 +1051,7 @@ class AuthControllerTest {
             Mockito.when(authService.deleteUser(Mockito.any()))
                     .thenThrow(new UsernameNotFoundException("Username not found!"));
 
-            mockMvc.perform(delete("/api/auth/user/hungnguyen")
+            mockMvc.perform(delete("/api/auth/user/testusername")
                             .with(csrf()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
@@ -1032,12 +1070,12 @@ class AuthControllerTest {
 
             String json = """
                     {
-                        "username" : "hungnguyen",
+                        "username" : "testusername",
                         "role" : "SUPPORT"
                     }
                     """;
             UserResponseDto expected = new UserResponseDto(1L,
-                    "hung nguyen", "hungnguyen", "SUPPORT");
+                    "TestFN TestLN", "testusername", "SUPPORT");
 
             Mockito.when(authService.changeRole(Mockito.any()))
                     .thenReturn(expected);
@@ -1079,7 +1117,7 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenMissingRole() throws Exception{
             String json = """
                     {
-                        "username" : "hungnguyen"
+                        "username" : "testusername"
                     }
                     """;
 
@@ -1100,7 +1138,7 @@ class AuthControllerTest {
         void shouldReturnBadRequest_whenRoleIsBlank() throws Exception{
             String json = """
                     {
-                        "username" : "hungnguyen",
+                        "username" : "tester",
                         "role" : " "
                     }
                     """;
@@ -1138,6 +1176,102 @@ class AuthControllerTest {
 
             Mockito.verifyNoInteractions(authService);
         }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when username not found!")
+        void shouldReturnBadRequest_whenUsernameNotFound() throws Exception{
+            String json = """
+                    {
+                        "username" : "test",
+                        "role" : "SUPPORT"
+                    }
+                    """;
+            Mockito.when(authService.changeRole(Mockito.any()))
+                            .thenThrow(new UsernameNotFoundException("Username not found!"));
+            mockMvc.perform(put("/api/auth/role")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when role change request is other than support or merchant")
+        void shouldReturnBadRequest_whenRoleRequestIsOtherThanSupportOrMerchant() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "role" : "HELPER"
+                    }
+                    """;
+            Mockito.when(authService.changeRole(Mockito.any()))
+                    .thenThrow(new RoleChangeException("Only Support or Merchant role are available!",
+                                                        HttpStatus.BAD_REQUEST));
+            mockMvc.perform(put("/api/auth/role")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Conflict 409\" when role value is already provided!")
+        void shouldReturnConflict_whenRoleIsAlreadyProvided() throws Exception{
+            String json = """
+                    {
+                        "username" : "test",
+                        "role" : "SUPPORT"
+                    }
+                    """;
+            Mockito.when(authService.changeRole(Mockito.any()))
+                    .thenThrow(new RoleChangeException("test has been provided this role!",
+                            HttpStatus.CONFLICT));
+            mockMvc.perform(put("/api/auth/role")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(409))
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when attempting change role on admin")
+        void shouldReturnBadRequest_whenAttemptingChangeRoleOnAdmin() throws Exception{
+            String json = """
+                    {
+                        "username" : "test",
+                        "role" : "SUPPORT"
+                    }
+                    """;
+            Mockito.when(authService.changeRole(Mockito.any()))
+                    .thenThrow(new RoleChangeException("This is admin! You cannot make change role on admin.",
+                            HttpStatus.BAD_REQUEST));
+            mockMvc.perform(put("/api/auth/role")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+
+        }
+
     }
 
     @Nested
@@ -1149,7 +1283,7 @@ class AuthControllerTest {
 
             String json = """
                     {
-                        "username" : "hungnguyen",
+                        "username" : "testusername",
                         "operation" : "unlock"
                     }
                     """;
@@ -1215,7 +1349,7 @@ class AuthControllerTest {
 
             String json = """
                     {
-                        "username" : "hungnguyen"
+                        "username" : "testusername"
                     }
                     """;
 
@@ -1236,7 +1370,7 @@ class AuthControllerTest {
 
             String json = """
                     {
-                        "username" : "hungnguyen",
+                        "username" : "testusername",
                         "operation" : " "
                     }
                     """;
@@ -1251,5 +1385,125 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.timestamp").exists());
             Mockito.verifyNoInteractions(authService);
         }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when username not found")
+        void shouldReturnBadRequest_whenUsernameNotFound() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "operation" : "unlock"
+                    }
+                    """;
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+                    .thenThrow(new UsernameNotFoundException("Username not found!"));
+
+            mockMvc.perform(put("/api/auth/access")
+                    .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when attempting deactivate admin")
+        void shouldReturnBadRequest_whenDeactivatingAdmin() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "operation" : "lock"
+                    }
+                    """;
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+                    .thenThrow(new UserActiveStatusException("You cannot deactivate admin!",
+                            HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(put("/api/auth/access")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when attempting activate an active user")
+        void shouldReturnBadRequest_whenActivatedAnActiveUser() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "operation" : "unlock"
+                    }
+                    """;
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+                    .thenThrow(new UserActiveStatusException("User testusername has already been activated!",
+                            HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(put("/api/auth/access")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when attempting deactivate an inactive user")
+        void shouldReturnBadRequest_whenDeactivatedAnInactiveUser() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "operation" : "lock"
+                    }
+                    """;
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+                    .thenThrow(new UserActiveStatusException("User testusername had already been deactivated!",
+                            HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(put("/api/auth/access")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when providing invalid operation")
+        void shouldReturnBadRequest_whenProvidingInvalidOperation() throws Exception{
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "operation" : "set"
+                    }
+                    """;
+            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+                    .thenThrow(new UserActiveStatusException("Invalid Operation!",
+                            HttpStatus.BAD_REQUEST));
+
+            mockMvc.perform(put("/api/auth/access")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.details").exists());
+        }
+
     }
 }

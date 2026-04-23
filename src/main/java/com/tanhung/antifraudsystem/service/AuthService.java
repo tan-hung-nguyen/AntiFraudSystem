@@ -45,7 +45,7 @@ public class AuthService {
     public Map<String, Object> register(UserRegistrationRequest userRequest) throws RegistrationException{
 
         if(userRequest == null) {
-            throw new RegistrationException("Object cannot be null!", HttpStatus.BAD_REQUEST);
+            throw new RegistrationException("Object must not be null!", HttpStatus.BAD_REQUEST);
         }
 
         userRequest.usernameToLowerCase();
@@ -110,6 +110,7 @@ public class AuthService {
 
     @Transactional
     public DeleteStatusResponse deleteUser(String username) throws UsernameNotFoundException{
+        if(username == null) throw new NullPointerException("Username is null");
         if(!userRepo.existsByUsername(username)){
             throw new UsernameNotFoundException("Username not found!");
         }
@@ -134,7 +135,7 @@ public class AuthService {
         }
 
         if(userFound.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new RoleChangeException("This are admin! You cannot make change role on admin.", HttpStatus.BAD_REQUEST);
+            throw new RoleChangeException("This is admin! You cannot make change role on admin.", HttpStatus.BAD_REQUEST);
         }
         userFound.getRole().setRoleValue(user.getRole().toUpperCase());
         return userMapper.toDto(userFound);
@@ -149,10 +150,10 @@ public class AuthService {
         }
 
         if(found.isActive() && request.getOperation().equalsIgnoreCase("unlock")){
-            throw new UserActiveStatusException("User " + found.getUsername() + " has been already activated!",
+            throw new UserActiveStatusException("User " + found.getUsername() + " has already been activated!",
                                             HttpStatus.BAD_REQUEST);
         } else if(!found.isActive() && request.getOperation().equalsIgnoreCase("lock")){
-            throw new UserActiveStatusException("User " + found.getUsername() + " has been already deactivated!",
+            throw new UserActiveStatusException("User " + found.getUsername() + " has already been deactivated!",
                                             HttpStatus.BAD_REQUEST);
         }
 

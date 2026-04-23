@@ -66,9 +66,9 @@ class AuthServiceTest {
         void setUp(){
 
             requestUser = new UserRegistrationRequest();
-            requestUser.setFirstName("Hung");
-            requestUser.setLastName("Nguyen");
-            requestUser.setUsername("TanHUng");
+            requestUser.setFirstName("TestFN");
+            requestUser.setLastName("TestLN");
+            requestUser.setUsername("TestUsername");
             requestUser.setPassword("Password123");
             requestUser.setEmail("Test@GmaiL.com");
             requestUser.setPhoneNumber("1234567890");
@@ -81,7 +81,7 @@ class AuthServiceTest {
                 "when providing valid all 6 fields (firstname, lastname, username, password, email, phone number)")
         void shouldRegisterFirstUserAsAdministrator_whenValidRequestProvided() {
 
-            Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(false);
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("testusername"))).thenReturn(false);
             Mockito.when(userRepo.existsByEmail(Mockito.eq("test@gmail.com"))).thenReturn(false);
             Mockito.when(userRepo.existsByPhoneNumber(Mockito.any())).thenReturn(false);
 
@@ -102,9 +102,9 @@ class AuthServiceTest {
             userEntity = captor.getValue();
 
             //Check if user entity is saved correctly
-            assertEquals("Hung", userEntity.getFirstName());
-            assertEquals("Nguyen", userEntity.getLastName());
-            assertEquals("tanhung", userEntity.getUsername());
+            assertEquals("TestFN", userEntity.getFirstName());
+            assertEquals("TestLN", userEntity.getLastName());
+            assertEquals("testusername", userEntity.getUsername());
             assertEquals("1234567890", userEntity.getPhoneNumber());
             assertEquals("test@gmail.com", userEntity.getEmail());
             assertEquals("encodedPassword", userEntity.getPassword());
@@ -114,8 +114,8 @@ class AuthServiceTest {
 
             //Check if user dto return as desired
             UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
-            assertEquals("Hung Nguyen", actualDto.getName());
-            assertEquals("tanhung", actualDto.getUsername());
+            assertEquals("TestFN TestLN", actualDto.getName());
+            assertEquals("testusername", actualDto.getUsername());
             assertEquals("ADMINISTRATOR", actualDto.getRole());
 
         }
@@ -129,7 +129,7 @@ class AuthServiceTest {
 
             Mockito.when(passwordEncoder.encode(requestUser.getPassword()))
                     .thenReturn("encodedPassword");
-            Mockito.when(userRepo.existsByUsername("tanhung")).thenReturn(false);
+            Mockito.when(userRepo.existsByUsername("testusername")).thenReturn(false);
             Mockito.when(userRepo.count()).thenReturn(1L);
             Mockito.when(roleRepo.findRoleByRoleValue("MERCHANT")).thenReturn(new Role(2L,"MERCHANT"));
 
@@ -145,16 +145,16 @@ class AuthServiceTest {
             //Check saved entity
             assertNull(userEntity.getEmail());
             assertNull(userEntity.getPhoneNumber());
-            assertEquals("Hung", userEntity.getFirstName());
-            assertEquals("Nguyen", userEntity.getLastName());
+            assertEquals("TestFN", userEntity.getFirstName());
+            assertEquals("TestLN", userEntity.getLastName());
             assertEquals("encodedPassword", userEntity.getPassword());
             assertEquals("MERCHANT", userEntity.getRole().getRoleValue());
             assertFalse(userEntity.isActive());
 
             //Check dto
             UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
-            assertEquals("Hung Nguyen", actualDto.getName());
-            assertEquals("tanhung", actualDto.getUsername());
+            assertEquals("TestFN TestLN", actualDto.getName());
+            assertEquals("testusername", actualDto.getUsername());
             assertEquals("MERCHANT", actualDto.getRole());
 
             Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
@@ -164,7 +164,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Throw RegistrationException when username start with admin")
         void shouldThrowRegistrationException_whenUsernameStartWithAdmin(){
-            requestUser.setUsername("admintanhung");
+            requestUser.setUsername("adminusername");
             RegistrationException ex = assertThrows(RegistrationException.class,
                     () -> authService.register(requestUser));
             assertEquals("Username cannot start with reserved word!", ex.getMessage());
@@ -177,7 +177,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Throw RegistrationException when username start with root")
         void shouldThrowRegistrationException_whenUsernameStartWithRoot(){
-            requestUser.setUsername("roottanhung");
+            requestUser.setUsername("rootusername");
             RegistrationException ex = assertThrows(RegistrationException.class,
                     () -> authService.register(requestUser));
             assertEquals("Username cannot start with reserved word!", ex.getMessage());
@@ -205,7 +205,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Throw RegistrationException when username is taken")
         void shouldThrowRegistrationException_whenUsernameIsInTaken() {
-            Mockito.when(userRepo.existsByUsername(Mockito.eq("tanhung"))).thenReturn(true);
+            Mockito.when(userRepo.existsByUsername(Mockito.eq("testusername"))).thenReturn(true);
 
             RegistrationException ex = assertThrows(RegistrationException.class,
                     () -> authService.register(requestUser));
@@ -388,7 +388,7 @@ class AuthServiceTest {
             RoleChangeException ex = assertThrows(RoleChangeException.class,
                     () -> authService.changeRole(userChangeRoleRequest));
 
-            assertEquals("This are admin! You cannot make change role on admin.", ex.getMessage());
+            assertEquals("This is admin! You cannot make change role on admin.", ex.getMessage());
             assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
         }
 
@@ -475,7 +475,7 @@ class AuthServiceTest {
             UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
                     () -> authService.setUserActiveStatus(userAccessChangeRequest));
 
-            assertEquals("User test has been already activated!", ex.getMessage());
+            assertEquals("User test has already been activated!", ex.getMessage());
             assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
         }
 
@@ -489,7 +489,7 @@ class AuthServiceTest {
             UserActiveStatusException ex = assertThrows(UserActiveStatusException.class,
                     () -> authService.setUserActiveStatus(userAccessChangeRequest));
 
-            assertEquals("User test has been already deactivated!", ex.getMessage());
+            assertEquals("User test has already been deactivated!", ex.getMessage());
             assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
         }
     }

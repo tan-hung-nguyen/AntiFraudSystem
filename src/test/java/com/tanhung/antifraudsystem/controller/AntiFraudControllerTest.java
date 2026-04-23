@@ -384,10 +384,10 @@ class AntiFraudControllerTest {
 
     @Nested
     @DisplayName("POST /suspicious-ip")
-    class addSuspiciousIpAddressTest{
+    class addSuspiciousIpAddressTest {
         @Test
         @DisplayName("Return \"Created 201\" when ip address in IPV4 format")
-        void shouldReturnCreated_whenIpAddressIntCorrectFormat() throws Exception{
+        void shouldReturnCreated_whenIpAddressIntCorrectFormat() throws Exception {
             String json = """
                     {
                         "ipAddress" : "192.168.1.1"
@@ -398,9 +398,9 @@ class AntiFraudControllerTest {
             Mockito.when(antiFraudService.addIP(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/antifraud/suspicous-ip")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").exists())
                     .andExpect(jsonPath("$.ipAddress").exists());
@@ -410,14 +410,14 @@ class AntiFraudControllerTest {
 
         @Test
         @DisplayName("Return \"Bad Request 400\" when ip address is missing dot")
-        void shouldReturnBadRequest_whenIpAddressIsMissingDot() throws Exception{
+        void shouldReturnBadRequest_whenIpAddressIsMissingDot() throws Exception {
             String json = """
                     {
                         "ipAddress" : "19216811"
                     }
                     """;
             mockMvc.perform(post("/api/antifraud/suspicous-ip")
-                    .with(csrf())
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isBadRequest())
@@ -429,7 +429,7 @@ class AntiFraudControllerTest {
 
         @Test
         @DisplayName("Return \"Bad Request 400\" when ip address contains letters")
-        void shouldReturnBadRequest_whenIpAddressContainsLetters() throws Exception{
+        void shouldReturnBadRequest_whenIpAddressContainsLetters() throws Exception {
             String json = """
                     {
                         "ipAddress" : "192.abc.c.1"
@@ -448,7 +448,7 @@ class AntiFraudControllerTest {
 
         @Test
         @DisplayName("Return \"Bad Request 400\" when ip address format is not IPV4")
-        void shouldReturnBadRequest_whenIpAddressFormatIsNotIPV4() throws Exception{
+        void shouldReturnBadRequest_whenIpAddressFormatIsNotIPV4() throws Exception {
             String json = """
                     {
                         "ipAddress" : "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
@@ -467,7 +467,7 @@ class AntiFraudControllerTest {
 
         @Test
         @DisplayName("Return \"Bad Request 400\" when ip address is not provided")
-        void shouldReturnBadRequest_whenIpAddressIsNull() throws Exception{
+        void shouldReturnBadRequest_whenIpAddressIsNull() throws Exception {
             String json = """
                     {
                         "ipAddress" : " "
