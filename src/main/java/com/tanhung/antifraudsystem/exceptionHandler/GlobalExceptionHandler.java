@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e){
-        return getErrorResponse(e, HttpStatus.BAD_REQUEST);
+        return getErrorResponse(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NumberFormatException.class)
