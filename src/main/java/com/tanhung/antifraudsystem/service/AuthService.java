@@ -110,7 +110,6 @@ public class AuthService {
 
     @Transactional
     public DeleteStatusResponse deleteUser(String username) throws UsernameNotFoundException{
-        if(username == null) throw new NullPointerException("Username is null");
         if(!userRepo.existsByUsername(username)){
             throw new UsernameNotFoundException("Username not found!");
         }

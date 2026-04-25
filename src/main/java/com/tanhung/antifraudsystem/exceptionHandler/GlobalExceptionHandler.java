@@ -2,6 +2,7 @@ package com.tanhung.antifraudsystem.exceptionHandler;
 
 import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
 import com.tanhung.antifraudsystem.exception.*;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -35,6 +36,17 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(error);
     }
+
+    private ResponseEntity<ErrorResponse> getErrorResponse(RuntimeException e, HttpStatus status){
+        ErrorResponse error = new ErrorResponse();
+        error.setError(status.getReasonPhrase());
+        error.setStatusCode(status.value());
+        error.setTimestamp(Instant.now());
+        error.setDetails(e.getMessage());
+
+        return ResponseEntity.status(status).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         Map<String, String> errors = new HashMap<>();
@@ -52,63 +64,33 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e){
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.badRequest().body(error);
+        return getErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NumberFormatException.class)
     public ResponseEntity<ErrorResponse> handleInvalidNumberFormatException(NumberFormatException e){
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.badRequest().body(error);
+        return getErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(InvalidAmountException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAmountException(InvalidAmountException e) {
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setTimestamp(Instant.now());
-        error.setDetails(e.getMessage());
-
-        return ResponseEntity.badRequest().body(error);
+        return getErrorResponse(e, e.getStatus());
     }
-
 
     @ExceptionHandler({UserActiveStatusException.class, RegistrationException.class, RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
-
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(e.getStatus().value());
-        error.setError(e.getStatus().getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.status(e.getStatus()).body(error);
+        return getErrorResponse(e, e.getStatus());
     }
-
 
     @ExceptionHandler({IPAddressException.class, StolenCardException.class})
     public ResponseEntity<ErrorResponse> handleAntiFraudServiceException(AntiFraudServiceException e){
-        ErrorResponse error = new ErrorResponse();
-        error.setStatusCode(e.getStatus().value());
-        error.setError(e.getStatus().getReasonPhrase());
-        error.setDetails(e.getMessage());
-        error.setTimestamp(Instant.now());
-
-        return ResponseEntity.status(e.getStatus()).body(error);
+        return getErrorResponse(e, e.getStatus());
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException e){
+        return getErrorResponse(e, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         return handleJacksonException(e.getCause());
