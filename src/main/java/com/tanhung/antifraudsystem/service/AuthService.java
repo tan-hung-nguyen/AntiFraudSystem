@@ -8,9 +8,7 @@ import com.tanhung.antifraudsystem.dto.response.AuthenticationResponse;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
-import com.tanhung.antifraudsystem.exception.UserActiveStatusException;
-import com.tanhung.antifraudsystem.exception.RegistrationException;
-import com.tanhung.antifraudsystem.exception.RoleChangeException;
+import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
 import com.tanhung.antifraudsystem.model.Role;
 import com.tanhung.antifraudsystem.model.User;
@@ -18,7 +16,6 @@ import com.tanhung.antifraudsystem.repo.RoleRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,10 +39,10 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public Map<String, Object> register(UserRegistrationRequest userRequest) throws RegistrationException{
+    public Map<String, Object> register(UserRegistrationRequest userRequest) throws RegisterException {
 
         if(userRequest == null) {
-            throw new RegistrationException("Object must not be null!", HttpStatus.BAD_REQUEST);
+            throw new RegisterNullException("Object must not be null!", HttpStatus.BAD_REQUEST);
         }
 
         userRequest.usernameToLowerCase();
@@ -55,18 +52,18 @@ public class AuthService {
 
         if(userRequest.getUsername().startsWith("admin") ||
         userRequest.getUsername().startsWith("root")){
-            throw new RegistrationException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
+            throw new UsernameReservedWordException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
         }
         if (userRepo.existsByUsername(userRequest.getUsername())) {
-            throw new RegistrationException("Username is already taken!", HttpStatus.CONFLICT);
+            throw new RegisterConflictException("Username is already taken!", HttpStatus.CONFLICT);
         }
         if (userRequest.getEmail() != null &&
                 userRepo.existsByEmail(userRequest.getEmail())) {
-            throw new RegistrationException("Email is already in used!", HttpStatus.CONFLICT);
+            throw new RegisterConflictException("Email is already in used!", HttpStatus.CONFLICT);
         }
         if (userRequest.getPhoneNumber() != null &&
                 userRepo.existsByPhoneNumber(userRequest.getPhoneNumber())) {
-            throw new RegistrationException("Phone number is already in used!", HttpStatus.CONFLICT);
+            throw new RegisterConflictException("Phone number is already in used!", HttpStatus.CONFLICT);
         }
 
         String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
@@ -126,11 +123,11 @@ public class AuthService {
 
         if(!user.getRole().equalsIgnoreCase("support") &&
         !user.getRole().equalsIgnoreCase("merchant")){
-            throw new RoleChangeException("Only Support or Merchant role are available!", HttpStatus.BAD_REQUEST);
+            throw new RoleNotAvailableException("Only Support or Merchant role are available!", HttpStatus.BAD_REQUEST);
         }
 
         if(user.getRole().equalsIgnoreCase(userFound.getRole().getRoleValue())){
-            throw new RoleChangeException(userFound.getUsername() + " has been provided this role!", HttpStatus.CONFLICT);
+            throw new RoleConflictException(userFound.getUsername() + " has been provided this role!", HttpStatus.CONFLICT);
         }
 
         if(userFound.getRole().getRoleValue().equalsIgnoreCase("administrator")){
@@ -141,18 +138,18 @@ public class AuthService {
     }
 
     @Transactional
-    public StatusResponse setUserActiveStatus(UserAccessChangeRequest request) throws UsernameNotFoundException, UserActiveStatusException {
+    public StatusResponse setUserActiveStatus(UserAccessChangeRequest request) throws UsernameNotFoundException, UserStatusException {
         User found = userRepo.findByUsername(request.getUsername().toLowerCase());
         if(found == null) throw new UsernameNotFoundException("User not found!");
         if(found.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new UserActiveStatusException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
+            throw new UserStatusException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
         }
 
         if(found.isActive() && request.getOperation().equalsIgnoreCase("unlock")){
-            throw new UserActiveStatusException("User " + found.getUsername() + " has already been activated!",
+            throw new UserStatusException("User " + found.getUsername() + " has already been activated!",
                                             HttpStatus.BAD_REQUEST);
         } else if(!found.isActive() && request.getOperation().equalsIgnoreCase("lock")){
-            throw new UserActiveStatusException("User " + found.getUsername() + " has already been deactivated!",
+            throw new UserStatusException("User " + found.getUsername() + " has already been deactivated!",
                                             HttpStatus.BAD_REQUEST);
         }
 
@@ -163,7 +160,7 @@ public class AuthService {
             found.setActive(false);
             return new StatusResponse("User " + found.getUsername() + " locked!");
         } else {
-            throw new UserActiveStatusException("Invalid operation!", HttpStatus.BAD_REQUEST);
+            throw new InvalidOperationException("Invalid operation!", HttpStatus.BAD_REQUEST);
         }
     }
 }

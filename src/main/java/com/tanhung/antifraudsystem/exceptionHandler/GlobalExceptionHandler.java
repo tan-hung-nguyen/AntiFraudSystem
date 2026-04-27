@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tools.jackson.databind.exc.InvalidFormatException;
@@ -77,7 +76,7 @@ public class GlobalExceptionHandler {
         return getErrorResponse(e, e.getStatus());
     }
 
-    @ExceptionHandler({UserActiveStatusException.class, RegistrationException.class, RoleChangeException.class})
+    @ExceptionHandler({UserStatusException.class, RegisterException.class, RoleChangeException.class})
     public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
         return getErrorResponse(e, e.getStatus());
     }
