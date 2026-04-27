@@ -76,7 +76,6 @@ public class AntiFraudController {
     @DeleteMapping("/stolencard/{number}")
     public ResponseEntity<StatusResponse> deleteStolenCardNumber(
             @PathVariable
-            @NotNull(message = "Card number must not be null!")
             @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits") String number){
 
         StatusResponse response = antiFraudService.deleteStolenCardNumber(number);

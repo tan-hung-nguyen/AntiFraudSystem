@@ -17,7 +17,6 @@ import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -104,7 +103,7 @@ public class AntiFraudService {
     public StolenCardResponse addStolenCardNumber(StolenCardRequest card) throws  StolenCardException{
         if(card == null) throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
         if(!CardValidator.isValidCardNumber(card.getCardNumber())){
-            throw new CardNumberInvalidException("Card number is invalid!", HttpStatus.BAD_REQUEST);
+            throw new InvalidCardNumberException("Card number is invalid!", HttpStatus.BAD_REQUEST);
         }
 
         if(stolenCardRepo.existsStolenCardByCardNumber(card.getCardNumber())){
