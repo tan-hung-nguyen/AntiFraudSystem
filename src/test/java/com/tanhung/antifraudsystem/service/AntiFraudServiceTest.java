@@ -1,14 +1,17 @@
 package com.tanhung.antifraudsystem.service;
 
+import com.tanhung.antifraudsystem.dto.request.StolenCardRequest;
 import com.tanhung.antifraudsystem.dto.request.SuspiciousIpRequest;
 import com.tanhung.antifraudsystem.dto.response.ActionResponse;
 import com.tanhung.antifraudsystem.dto.response.IPResponse;
 import com.tanhung.antifraudsystem.dto.response.StatusResponse;
+import com.tanhung.antifraudsystem.dto.response.StolenCardResponse;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.StolenCardMapper;
 import com.tanhung.antifraudsystem.mapper.StolenCardMapperImpl;
 import com.tanhung.antifraudsystem.mapper.SuspiciousIpAddressMapper;
 import com.tanhung.antifraudsystem.mapper.SuspiciousIpAddressMapperImpl;
+import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
@@ -52,9 +55,14 @@ class AntiFraudServiceTest {
     @Nested
     @DisplayName("addIP method")
     class addIPTest{
-        private final SuspiciousIpRequest request = SuspiciousIpRequest
-                                                .builder()
-                                                .ipAddress("192.168.1.1").build();
+        private SuspiciousIpRequest request;
+        @BeforeEach
+        void setUpRequest()
+        {
+          request = SuspiciousIpRequest
+                    .builder()
+                    .ipAddress("192.168.1.1").build();
+        }
         @Test
         @DisplayName("Should return IPResponse dto when add successfully")
         void shouldReturnIPResponseDto_whenAddSuccessfully() {
@@ -154,9 +162,11 @@ class AntiFraudServiceTest {
 
             List<IPResponse> actual = antiFraudService.getAllSuspiciousIPs();
 
+            assertFalse(actual.isEmpty());
             assertEquals(2, actual.size());
             assertEquals(1,actual.getFirst().getId());
             assertEquals(2, actual.get(1).getId());
+            Mockito.verify(suspiciousIPRepo).findAll(Sort.by("id"));
         }
 
         @Test
@@ -167,6 +177,147 @@ class AntiFraudServiceTest {
 
             List<IPResponse> actual = antiFraudService.getAllSuspiciousIPs();
             assertTrue(actual.isEmpty());
+            assertNotNull(actual);
+            Mockito.verify(suspiciousIPRepo).findAll(Sort.by("id"));
+        }
+    }
+
+    @Nested
+    @DisplayName("addStolenCardNumber Method")
+    class addStolenCardNumberTest{
+        private StolenCardRequest request;
+
+        @BeforeEach
+        void setUpRequest() {
+            request = StolenCardRequest.builder()
+                    .cardNumber("4000008449433403")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should return StolenCardResponse with id, card number when card number adding successfully")
+        void shouldReturnStolenCardResponse_whenCardNumberAddSuccessfully() {
+            Mockito.when(stolenCardRepo.existsStolenCardByCardNumber(Mockito.eq("4000008449433403")))
+                    .thenReturn(false);
+            Mockito.when(stolenCardRepo.save(Mockito.any()))
+                    .thenReturn(new StolenCard(1L, "4000008449433403"));
+
+            StolenCardResponse actual = antiFraudService.addStolenCardNumber(request);
+
+            assertEquals(1, actual.getId());
+            assertEquals("4000008449433403", actual.getCardNumber());
+            Mockito.verify(stolenCardRepo).save(Mockito.any());
+
+        }
+
+        @Test
+        @DisplayName("Should throw StolenCardNullException with bad request status 400 when card number is null")
+        void shouldThrowStolenCardNullException_whenCardNumberIsNull(){
+
+            StolenCardNullException ex = assertThrows(StolenCardNullException.class,
+                    () -> antiFraudService.addStolenCardNumber(null));
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+            Mockito.verify(stolenCardRepo, Mockito.never()).existsStolenCardByCardNumber(Mockito.any());
+            Mockito.verify(stolenCardRepo, Mockito.never()).save(Mockito.any());
+
+        }
+
+        @Test
+        @DisplayName("Should throw StolenCardConflictException with conflict status 409 when " +
+                "card number is already in the list")
+        void shouldThrowStolenCardConflictException_whenCardNumberIsAlreadyInTheList() {
+            Mockito.when(stolenCardRepo.existsStolenCardByCardNumber(Mockito.eq("4000008449433403")))
+                    .thenReturn(true);
+
+            StolenCardConflictException ex = assertThrows(StolenCardConflictException.class,
+                    () -> antiFraudService.addStolenCardNumber(request));
+            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
+            Mockito.verify(stolenCardRepo, Mockito.never()).save(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("Should throw InvalidCardNumberException with bad request status 400 when " +
+                "card number is invalid")
+        void shouldThrowInvalidCardNumber_whenCardNumberIsInvalid() {
+            request.setCardNumber("4000008449433408");
+            InvalidCardNumberException ex = assertThrows(InvalidCardNumberException.class,
+                    () -> antiFraudService.addStolenCardNumber(request));
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+            Mockito.verify(stolenCardRepo, Mockito.never()).existsStolenCardByCardNumber(Mockito.any());
+            Mockito.verify(stolenCardRepo, Mockito.never()).save(Mockito.any());
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteStolenCardNumber Method")
+    class deleteStolenCardNumberTest{
+        private final String cardNumber = "4000008449433403";
+
+        @Test
+        @DisplayName("Should return StatusResponse when deleting card number successfully")
+        void shouldReturnStatusResponse_whenDeletingCardNumberSuccessfully() {
+            Mockito.when(stolenCardRepo.existsStolenCardByCardNumber(cardNumber))
+                    .thenReturn(true);
+            StatusResponse actual = antiFraudService.deleteStolenCardNumber(cardNumber);
+
+            assertNotNull(actual);
+            assertNotNull(actual.getStatus());
+            assertEquals("Card 4000008449433403 successfully removed!", actual.getStatus());
+            Mockito.verify(stolenCardRepo).deleteStolenCardByCardNumber(cardNumber);
+        }
+
+        @Test
+        @DisplayName("Should throw StolenCardNullException with bad request status 400 when card number is null")
+        void shouldThrowStolenCardNumberNullException_whenCardNumberIsNull(){
+            StolenCardNullException ex = assertThrows(StolenCardNullException.class,
+                    () -> antiFraudService.deleteStolenCardNumber(null));
+            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+            Mockito.verify(stolenCardRepo, Mockito.never()).existsStolenCardByCardNumber(cardNumber);
+            Mockito.verify(stolenCardRepo, Mockito.never()).deleteStolenCardByCardNumber(cardNumber);
+        }
+
+        @Test
+        @DisplayName("Should throw StolenCardNotFoundException with not found status 404 when card number not found")
+        void shouldThrowStolenCardNumberNotFoundException_whenCardNumberNotFound(){
+            Mockito.when(stolenCardRepo.existsStolenCardByCardNumber(cardNumber))
+                    .thenReturn(false);
+            StolenCardNumberNotFoundException ex = assertThrows(StolenCardNumberNotFoundException.class,
+                    () -> antiFraudService.deleteStolenCardNumber(cardNumber));
+            assertEquals("Not Found", ex.getStatus().getReasonPhrase());
+            Mockito.verify(stolenCardRepo, Mockito.never()).deleteStolenCardByCardNumber(cardNumber);
+        }
+    }
+
+    @Nested
+    @DisplayName("getAllStolenCards Method")
+    class getAllStolenCardsTest{
+
+        @Test
+        @DisplayName("Should return list of StolenCardResponse with id, card number when stolen card list is not empty")
+        void shouldReturnListOfStolenCardResponse_whenListIsNotEmpty() {
+            Mockito.when(stolenCardRepo.findAll(Sort.by("id")))
+                    .thenReturn(List.of(new StolenCard(1L, "Test"),
+                            new StolenCard(2L, "Test")));
+            List<StolenCardResponse> actual = antiFraudService.getAllStolenCards();
+
+            assertFalse(actual.isEmpty());
+            assertEquals(2, actual.size());
+            assertEquals(1, actual.getFirst().getId());
+            assertEquals(2, actual.get(1).getId());
+
+            Mockito.verify(stolenCardRepo).findAll(Sort.by("id"));
+        }
+
+        @Test
+        @DisplayName("Should return empty list of StolenCardResponse when stolen card list is empty")
+        void shouldReturnEmptyListOfStolenCardResponse_whenListIsEmpty() {
+            Mockito.when(stolenCardRepo.findAll(Sort.by("id")))
+                    .thenReturn(List.of());
+            List<StolenCardResponse> actual = antiFraudService.getAllStolenCards();
+
+            assertTrue(actual.isEmpty());
+            assertNotNull(actual);
+            Mockito.verify(stolenCardRepo).findAll(Sort.by("id"));
         }
     }
 
