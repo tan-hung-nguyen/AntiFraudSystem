@@ -551,7 +551,7 @@ class AntiFraudControllerTest {
             void shouldReturnOkAndIpList_whenSuspiciousIpExist() throws Exception{
                 List<IPResponse> expected = new ArrayList<>(List.of(new IPResponse(1L, "testIp"),
                                                                     new IPResponse(2L, "testIp2")));
-                Mockito.when(antiFraudService.getAllSuspiciousIp()).thenReturn(expected);
+                Mockito.when(antiFraudService.getAllSuspiciousIPs()).thenReturn(expected);
                 mockMvc.perform(get("/api/antifraud/suspicious-ip")
                         .with(csrf()))
                         .andExpect(status().isOk())
@@ -563,7 +563,7 @@ class AntiFraudControllerTest {
             @Test
             @DisplayName("Return \"Ok 200\" and empty list of suspicious-ip when black list is empty")
             void shouldReturnOkAndEmptyList_whenNoSuspiciousIpAddresses() throws Exception{
-                Mockito.when(antiFraudService.getAllSuspiciousIp()).thenReturn(List.of());
+                Mockito.when(antiFraudService.getAllSuspiciousIPs()).thenReturn(List.of());
 
                 mockMvc.perform(get("/api/antifraud/suspicious-ip")
                         .with(csrf()))

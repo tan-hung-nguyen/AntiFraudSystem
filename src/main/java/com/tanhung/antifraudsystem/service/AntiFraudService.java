@@ -92,7 +92,7 @@ public class AntiFraudService {
         return new StatusResponse("IP " + ip + " successfully removed!");
     }
 
-    public List<IPResponse> getAllSuspiciousIp(){
+    public List<IPResponse> getAllSuspiciousIPs(){
         return suspiciousIPRepo.findAll(Sort.by("id"))
                 .stream()
                 .map(suspiciousIpAddressMapper::toDto)

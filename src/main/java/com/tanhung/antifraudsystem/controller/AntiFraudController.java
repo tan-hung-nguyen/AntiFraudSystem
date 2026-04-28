@@ -60,7 +60,7 @@ public class AntiFraudController {
 
     @GetMapping("/suspicious-ip")
     public ResponseEntity<List<IPResponse>> getAllSuspiciousIP(){
-        List<IPResponse> ipList = antiFraudService.getAllSuspiciousIp();
+        List<IPResponse> ipList = antiFraudService.getAllSuspiciousIPs();
 
         return ResponseEntity.ok(ipList);
     }
