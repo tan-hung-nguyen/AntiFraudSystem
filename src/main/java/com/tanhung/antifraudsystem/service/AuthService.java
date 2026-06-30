@@ -80,7 +80,7 @@ public class AuthService {
     }
 
     private boolean isUsernameExist(String username){
-        return userRepo.existsByUsername(username);
+        return userRepo.existsByUsername(username.toLowerCase());
     }
 
     private void validateEmail(String email){
@@ -91,12 +91,12 @@ public class AuthService {
 
     private void checkEmailAvailability(String email) throws EmailConflictException{
         if(isEmailExist(email)){
-            throw new UsernameConflictException("Email is already in used!", HttpStatus.CONFLICT);
+            throw new EmailConflictException("Email is already in used!", HttpStatus.CONFLICT);
         }
     }
 
     private boolean isEmailExist(String email){
-        return userRepo.existsByEmail(email);
+        return userRepo.existsByEmail(email.toLowerCase());
     }
 
     private void validatePhoneNumber(String phoneNumber){
@@ -190,7 +190,7 @@ public class AuthService {
     }
 
     @Transactional
-    public DeleteStatusResponseDto deleteUser(String username){
+    public DeleteStatusResponseDto deleteUser(String username) throws  UsernameNotFoundException{
         if(!isUsernameExist(username)){
             throw new UsernameNotFoundException("Username not found!");
         }
@@ -198,31 +198,65 @@ public class AuthService {
     }
 
     private DeleteStatusResponseDto delete(String username){
-        userRepo.deleteUserByUsername(username);
-        return new DeleteStatusResponseDto(username, " Deleted successfully!");
+        userRepo.deleteUserByUsername(username.toLowerCase());
+        return new DeleteStatusResponseDto(username, "Deleted successfully!");
     }
 
     @Transactional
-    public UserResponseDto changeRole(UserRoleChangeRequestDto user) throws UsernameNotFoundException, RoleChangeException{
-        User userFound = userRepo.findByUsername(user.getUsername().toLowerCase());
-        if(userFound == null){
+    public UserResponseDto changeRole(UserRoleChangeRequestDto request){
+        checkRequestRoleValue(request.getRole());
+        User user = getUserByUsername(request.getUsername());
+        processChange(user, request.getRole());
+        return userMapper.toDto(user);
+    }
+
+    private void checkRequestRoleValue(String role) throws RoleNotAvailableException{
+        if(!isValidRole(role)){
+            throw new RoleNotAvailableException(role.toUpperCase() + " role is not available!", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private boolean isValidRole(String role){
+        return role.equalsIgnoreCase(RoleValue.SUPPORT.toString()) ||
+                role.equalsIgnoreCase(RoleValue.MERCHANT.toString());
+    }
+
+    private User getUserByUsername(String username) throws UsernameNotFoundException{
+        User user = userRepo.findByUsername(username.toLowerCase());
+        if(user == null){
             throw new UsernameNotFoundException("Username not found!");
         }
+        return user;
+    }
 
-        if(!user.getRole().equalsIgnoreCase("support") &&
-        !user.getRole().equalsIgnoreCase("merchant")){
-            throw new RoleNotAvailableException("Only Support or Merchant role are available!", HttpStatus.BAD_REQUEST);
-        }
+    private void processChange(User user, String newRole){
+        validateCurrentUserRole(user, newRole);
+        applyNewRole(user, newRole);
+    }
 
-        if(user.getRole().equalsIgnoreCase(userFound.getRole().getRoleValue())){
-            throw new RoleConflictException(userFound.getUsername() + " has been provided this role!", HttpStatus.CONFLICT);
+    private void validateCurrentUserRole(User user, String newRole) throws RoleConflictException{
+        verifyUserCurrentRole(user);
+        if(isDuplicateRole(user, newRole)){
+            throw new RoleConflictException(newRole.toUpperCase() + " had been provided to " + user.getUsername() + "!", HttpStatus.CONFLICT);
         }
+    }
 
-        if(userFound.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new RoleChangeException("This is admin! You cannot make change role on admin.", HttpStatus.BAD_REQUEST);
+    private void verifyUserCurrentRole(User user) throws RoleChangeException{
+        if(isAdmin(user)){
+            throw new RoleChangeException("This is admin. You can't change their role!", HttpStatus.BAD_REQUEST);
         }
-        userFound.getRole().setRoleValue(user.getRole().toUpperCase());
-        return userMapper.toDto(userFound);
+    }
+
+    private boolean isAdmin(User user){
+        return user.getRole().getRoleValue().equalsIgnoreCase(RoleValue.ADMINISTRATOR.toString());
+    }
+
+    private boolean isDuplicateRole(User user, String newRole){
+        return user.getRole().getRoleValue().equalsIgnoreCase(newRole);
+    }
+
+    private void applyNewRole(User user, String newRole){
+        user.getRole().setRoleValue(newRole.toUpperCase());
     }
 
     @Transactional
