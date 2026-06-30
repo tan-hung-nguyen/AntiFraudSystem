@@ -1,8 +1,8 @@
 package com.tanhung.antifraudsystem.controller;
 
 import com.tanhung.antifraudsystem.config.JwtAuthenticationFilter;
-import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
-import com.tanhung.antifraudsystem.dto.response.StatusResponse;
+import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
+import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
@@ -711,7 +711,7 @@ class AuthControllerTest {
                     """;
 
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new RegisterConflictException("Email is already been used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Email is already been used!", HttpStatus.CONFLICT));
 
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
@@ -813,7 +813,7 @@ class AuthControllerTest {
                     """;
 
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new RegisterConflictException("Phone number is already been used", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Phone number is already been used", HttpStatus.CONFLICT));
 
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
@@ -894,7 +894,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new RegisterConflictException("Username is already taken!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Username is already taken!", HttpStatus.CONFLICT));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -920,7 +920,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new RegisterConflictException("Email is already in used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Email is already in used!", HttpStatus.CONFLICT));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -946,7 +946,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new RegisterConflictException("Phone number is already in used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Phone number is already in used!", HttpStatus.CONFLICT));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1023,7 +1023,7 @@ class AuthControllerTest {
         void shouldReturnOk_whenDeletingUserSuccessfully() throws Exception {
 
             Mockito.when(authService.deleteUser(Mockito.any()))
-                    .thenReturn(new DeleteStatusResponse("test_.", "Deleted successfully!"));
+                    .thenReturn(new DeleteStatusResponseDto("test_.", "Deleted successfully!"));
 
             mockMvc.perform(delete("/api/auth/user/test_.")
                             .with(csrf()))
@@ -1277,8 +1277,8 @@ class AuthControllerTest {
                     }
                     """;
 
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
-                    .thenReturn(new StatusResponse("User hungnguyen unlocked"));
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
+                    .thenReturn(new StatusResponseDto("User hungnguyen unlocked"));
             mockMvc.perform(put("/api/auth/access")
                     .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -1286,7 +1286,7 @@ class AuthControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").exists());
 
-            Mockito.verify(authService).setUserActiveStatus(Mockito.any());
+            Mockito.verify(authService).changeUserStatus(Mockito.any());
         }
 
         @Test
@@ -1384,7 +1384,7 @@ class AuthControllerTest {
                         "operation" : "unlock"
                     }
                     """;
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
                     .thenThrow(new UsernameNotFoundException("Username not found!"));
 
             mockMvc.perform(put("/api/auth/access")
@@ -1407,8 +1407,8 @@ class AuthControllerTest {
                         "operation" : "lock"
                     }
                     """;
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
-                    .thenThrow(new UserStatusException("You cannot deactivate admin!",
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
+                    .thenThrow(new UserStatusChangeException("You cannot deactivate admin!",
                             HttpStatus.BAD_REQUEST));
 
             mockMvc.perform(put("/api/auth/access")
@@ -1431,8 +1431,8 @@ class AuthControllerTest {
                         "operation" : "unlock"
                     }
                     """;
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
-                    .thenThrow(new UserStatusException("User testusername has already been activated!",
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
+                    .thenThrow(new UserStatusChangeException("User testusername has already been activated!",
                             HttpStatus.BAD_REQUEST));
 
             mockMvc.perform(put("/api/auth/access")
@@ -1455,8 +1455,8 @@ class AuthControllerTest {
                         "operation" : "lock"
                     }
                     """;
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
-                    .thenThrow(new UserStatusException("User testusername had already been deactivated!",
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
+                    .thenThrow(new UserStatusChangeException("User testusername had already been deactivated!",
                             HttpStatus.BAD_REQUEST));
 
             mockMvc.perform(put("/api/auth/access")
@@ -1479,8 +1479,8 @@ class AuthControllerTest {
                         "operation" : "set"
                     }
                     """;
-            Mockito.when(authService.setUserActiveStatus(Mockito.any()))
-                    .thenThrow(new InvalidOperationException("Invalid Operation!",
+            Mockito.when(authService.changeUserStatus(Mockito.any()))
+                    .thenThrow(new InvalidOperationChangeException("Invalid Operation!",
                             HttpStatus.BAD_REQUEST));
 
             mockMvc.perform(put("/api/auth/access")

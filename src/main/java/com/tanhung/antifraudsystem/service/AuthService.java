@@ -35,6 +35,10 @@ public class AuthService {
     public enum RoleValue{
         ADMINISTRATOR, MERCHANT, SUPPORT
     }
+
+    public enum Operation{
+        LOCK, UNLOCK
+    }
     private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
     private final UserMapper userMapper;
@@ -44,8 +48,7 @@ public class AuthService {
 
     public Map<String, Object> register(UserRegistrationRequestDto userRequest) throws RegisterException {
         validateUserRegistration(userRequest);
-        User user = userMapper.toEntity(userRequest);
-        return save(user);
+        return save(userRequest);
     }
 
     private void validateUserRegistration(UserRegistrationRequestDto registrationRequest) throws RegisterException {
@@ -63,12 +66,12 @@ public class AuthService {
     }
 
     private void validateUsernameFormat(String username) throws UsernameReservedWordException{
-        if(!isValidUsername(username)){
+        if(!isUsernameStartsWithReservedWord(username)){
             throw new UsernameReservedWordException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
         }
     }
 
-    private boolean isValidUsername(String username){
+    private boolean isUsernameStartsWithReservedWord(String username){
         return !username.startsWith("admin") &&
                 !username.startsWith("root");
     }
@@ -106,60 +109,56 @@ public class AuthService {
     }
 
     private void checkPhoneNumberAvailability(String phoneNumber) throws PhoneNumberConflictException{
-        if(isPhoneNumberConflict(phoneNumber)){
+        if(isPhoneNumberTaken(phoneNumber)){
             throw new PhoneNumberConflictException("Phone number is already in used!", HttpStatus.CONFLICT);
         }
     }
 
-    private boolean isPhoneNumberConflict(String phoneNumber){
+    private boolean isPhoneNumberTaken(String phoneNumber){
         return userRepo.existsByPhoneNumber(phoneNumber);
     }
 
-    private Map<String, Object> save(User user) {
-        prepareUser(user);
+    private Map<String, Object> save(UserRegistrationRequestDto userRequest) {
+        User user = prepareUser(userRequest);
         userRepo.save(user);
         return buildRegistrationResponse(user);
     }
 
-    private void prepareUser(User user){
-        normalizedUserField(user);
-        encodeUserPassword(user);
-        assignRoleToUser(user);
+    private User prepareUser(UserRegistrationRequestDto userRequest){
+        User user = userMapper.toEntity(userRequest);
+        boolean firstUser = isFirstUser();
+        user.setUsername(normalizeUsername(user.getUsername()));
+        user.setEmail(normalizeEmail(user.getEmail()));
+        user.setPassword(encodeUserPassword(user.getPassword()));
+        user.setRole(determineRole(firstUser));
+        user.setActive(firstUser);
+        return user;
     }
 
-    private void normalizedUserField(User user){
-        user.usernameToLowerCase();
-        if(user.getEmail() != null){
-            user.emailToLowerCase();
-        }
+    private String normalizeUsername(String username){
+        return username.toLowerCase();
     }
 
-    private void encodeUserPassword(User user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    private String normalizeEmail(String email){
+        return email != null ? email.toLowerCase() : null;
     }
 
-    private void assignRoleToUser(User user){
-        if(isFirstUser()){
-            assignAdminRole(user);
-        } else {
-            assignMerchantRole(user);
-        }
+    private String encodeUserPassword(String password){
+        return passwordEncoder.encode(password);
     }
+
+    private Role determineRole(boolean firstUser){
+        RoleValue role = firstUser ? RoleValue.ADMINISTRATOR : RoleValue.MERCHANT;
+        return fetchRoleFromDb(role);
+    }
+
 
     private boolean isFirstUser(){
         return userRepo.count() == 0;
     }
 
-    private void assignAdminRole(User user){
-        Role adminRole = roleRepo.findRoleByRoleValue(RoleValue.ADMINISTRATOR.toString());
-        user.setRole(adminRole);
-        user.setActive(true);
-    }
-
-    private void assignMerchantRole(User user){
-        Role merchantRole = roleRepo.findRoleByRoleValue(RoleValue.MERCHANT.toString());
-        user.setRole(merchantRole);
-        user.setActive(false);
+    private Role fetchRoleFromDb(RoleValue role){
+        return roleRepo.findRoleByRoleValue(role.toString());
     }
 
     private Map<String, Object> buildRegistrationResponse(User user){
@@ -205,9 +204,9 @@ public class AuthService {
     @Transactional
     public UserResponseDto changeRole(UserRoleChangeRequestDto request){
         checkRequestRoleValue(request.getRole());
-        User user = getUserByUsername(request.getUsername());
-        processChange(user, request.getRole());
-        return userMapper.toDto(user);
+        User targetUser = getUserByUsername(request.getUsername());
+        processChange(targetUser, request.getRole());
+        return userMapper.toDto(targetUser);
     }
 
     private void checkRequestRoleValue(String role) throws RoleNotAvailableException{
@@ -229,19 +228,20 @@ public class AuthService {
         return user;
     }
 
-    private void processChange(User user, String newRole){
-        validateCurrentUserRole(user, newRole);
-        applyNewRole(user, newRole);
+    private void processChange(User targetUser, String newRole){
+        validateCurrentUserRole(targetUser, newRole);
+        applyNewRole(targetUser, newRole);
     }
 
-    private void validateCurrentUserRole(User user, String newRole) throws RoleConflictException{
-        verifyUserCurrentRole(user);
-        if(isDuplicateRole(user, newRole)){
-            throw new RoleConflictException(newRole.toUpperCase() + " had been provided to " + user.getUsername() + "!", HttpStatus.CONFLICT);
+    private void validateCurrentUserRole(User targetUser, String newRole) throws RoleConflictException{
+        checkIfTargetUserIsAdmin(targetUser);
+        if(isRoleAssigned(targetUser, newRole)){
+            throw new RoleConflictException(newRole.toUpperCase() + " has already been assigned to " +
+                                                    targetUser.getUsername() + "!", HttpStatus.CONFLICT);
         }
     }
 
-    private void verifyUserCurrentRole(User user) throws RoleChangeException{
+    private void checkIfTargetUserIsAdmin(User user) throws RoleChangeException{
         if(isAdmin(user)){
             throw new RoleChangeException("This is admin. You can't change their role!", HttpStatus.BAD_REQUEST);
         }
@@ -251,7 +251,7 @@ public class AuthService {
         return user.getRole().getRoleValue().equalsIgnoreCase(RoleValue.ADMINISTRATOR.toString());
     }
 
-    private boolean isDuplicateRole(User user, String newRole){
+    private boolean isRoleAssigned(User user, String newRole){
         return user.getRole().getRoleValue().equalsIgnoreCase(newRole);
     }
 
@@ -260,29 +260,72 @@ public class AuthService {
     }
 
     @Transactional
-    public StatusResponseDto setUserStatus(UserAccessChangeRequestDto request) throws UsernameNotFoundException, UserStatusException {
-        User found = userRepo.findByUsername(request.getUsername().toLowerCase());
-        if(found == null) throw new UsernameNotFoundException("User not found!");
-        if(found.getRole().getRoleValue().equalsIgnoreCase("administrator")){
-            throw new UserStatusException("You cannot deactivate administrator!", HttpStatus.BAD_REQUEST);
+    public StatusResponseDto changeUserStatus(UserAccessChangeRequestDto request) throws UserStatusChangeException {
+        User user = getUserByUsername(request.getUsername().toLowerCase());
+        if (isAdmin(user)) {
+            throw new UserStatusChangeException("This is admin. You can't deactivate!", HttpStatus.BAD_REQUEST);
         }
+        return makeChangeStatus(user, request.getOperation());
+    }
 
-        if(found.isActive() && request.getOperation().equalsIgnoreCase("unlock")){
-            throw new UserStatusException("User " + found.getUsername() + " has already been activated!",
-                                            HttpStatus.BAD_REQUEST);
-        } else if(!found.isActive() && request.getOperation().equalsIgnoreCase("lock")){
-            throw new UserStatusException("User " + found.getUsername() + " has already been deactivated!",
-                                            HttpStatus.BAD_REQUEST);
-        }
+    private StatusResponseDto makeChangeStatus(User user, String operation){
+        checkIfOperationIsValid(operation);
+        return change(user, operation);
+    }
 
-        if(request.getOperation().equalsIgnoreCase("unlock")){
-            found.setActive(true);
-            return new StatusResponseDto("User " + found.getUsername() + " unlocked!");
-        } else if(request.getOperation().equalsIgnoreCase("lock")){
-            found.setActive(false);
-            return new StatusResponseDto("User " + found.getUsername() + " locked!");
-        } else {
-            throw new InvalidOperationException("Invalid operation!", HttpStatus.BAD_REQUEST);
+    private void checkIfOperationIsValid(String operation) throws InvalidOperationChangeException{
+        if(!isValidOperation(operation)){
+            throw new InvalidOperationChangeException("Invalid operation!", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    private boolean isValidOperation(String operation){
+        return operation.equalsIgnoreCase(Operation.LOCK.toString()) ||
+                operation.equalsIgnoreCase(Operation.UNLOCK.toString());
+    }
+
+    private StatusResponseDto change(User user, String operation) throws UserStatusChangeException{
+        validateStatusChange(user, operation);
+        return applyStatusChange(user, operation);
+    }
+
+    private void validateStatusChange(User user, String operation) throws UserStatusChangeException{
+        if(isAlreadyActivated(user, operation)){
+            throw new UserStatusChangeException("User " + user.getUsername() +
+                    " has already been activated!", HttpStatus.BAD_REQUEST);
+        }
+        if(isAlreadyDeactivated(user, operation)){
+            throw new UserStatusChangeException("User " + user.getUsername() +
+                    " has already been deactivated!", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private boolean isAlreadyActivated(User user, String operation){
+        return user.isActive() && operation.equalsIgnoreCase(Operation.UNLOCK.toString());
+    }
+
+    private boolean isAlreadyDeactivated(User user, String operation){
+        return !user.isActive() && operation.equalsIgnoreCase(Operation.LOCK.toString());
+    }
+
+    private StatusResponseDto applyStatusChange(User user, String operation){
+        if(isLockOperation(operation)){
+            return deactivate(user);
+        }
+        return activate(user);
+    }
+
+    private boolean isLockOperation(String operation){
+        return operation.equalsIgnoreCase(Operation.LOCK.toString());
+    }
+
+    private StatusResponseDto activate(User user){
+        user.setActive(true);
+        return new StatusResponseDto("User " + user.getUsername() + " unlocked!");
+    }
+
+    private StatusResponseDto deactivate(User user){
+        user.setActive(false);
+        return new StatusResponseDto("User " + user.getUsername() + " locked!");
     }
 }
