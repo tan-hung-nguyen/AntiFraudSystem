@@ -1,7 +1,9 @@
 package com.tanhung.antifraudsystem.exception;
 
-public class EmailConflictException extends RuntimeException {
-  public EmailConflictException(String message) {
-    super(message);
-  }
+import org.springframework.http.HttpStatus;
+
+public class EmailConflictException extends RegisterException {
+    public EmailConflictException(String message, HttpStatus status) {
+        super(message, status);
+    }
 }

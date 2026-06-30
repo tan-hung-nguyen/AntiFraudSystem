@@ -1,7 +1,9 @@
 package com.tanhung.antifraudsystem.exception;
 
-public class PhoneNumberConflictException extends RuntimeException {
-  public PhoneNumberConflictException(String message) {
-    super(message);
-  }
+import org.springframework.http.HttpStatus;
+
+public class PhoneNumberConflictException extends RegisterException {
+    public PhoneNumberConflictException(String message, HttpStatus status) {
+        super(message, status);
+    }
 }
