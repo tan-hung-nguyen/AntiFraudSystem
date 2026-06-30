@@ -11,14 +11,14 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 @JsonPropertyOrder({"error", "statusCode", "details", "timestamp"})
-public class ErrorResponse {
+public class ErrorResponseDto {
 
     private Integer statusCode;
     private String error;
     private String details;
     private Instant timestamp;
 
-    public ErrorResponse(Integer statusCode, String error, String details){
+    public ErrorResponseDto(Integer statusCode, String error, String details){
         this.statusCode = statusCode;
         this.error = error;
         this.details = details;

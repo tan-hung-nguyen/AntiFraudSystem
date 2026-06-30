@@ -7,8 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ActionResponse{
-    private String result;
-    private String info;
-
+public class IPResponseDto {
+    private Long id;
+    private String ipAddress;
 }

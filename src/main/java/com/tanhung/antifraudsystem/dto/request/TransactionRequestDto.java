@@ -1,8 +1,6 @@
 package com.tanhung.antifraudsystem.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -15,7 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransactionRequest{
+public class TransactionRequestDto {
 
         @NotNull(message = "Amount must not be null!")
         @DecimalMin(value = "1.00",

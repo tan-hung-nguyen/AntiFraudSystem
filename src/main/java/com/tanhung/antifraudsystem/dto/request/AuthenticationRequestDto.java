@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
-@Builder
-public class AuthenticationRequest {
+public class AuthenticationRequestDto {
     @NotBlank
     private String username;
+
     @NotBlank
     private String password;
 }
+

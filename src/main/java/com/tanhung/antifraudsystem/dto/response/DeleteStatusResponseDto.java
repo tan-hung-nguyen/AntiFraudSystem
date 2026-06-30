@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class DeleteStatusResponse{
+public class DeleteStatusResponseDto {
     private String username;
     private String status;
 }

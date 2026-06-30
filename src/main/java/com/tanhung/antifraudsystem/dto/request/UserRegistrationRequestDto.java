@@ -1,20 +1,18 @@
 package com.tanhung.antifraudsystem.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Length;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class UserRegistrationRequest {
+public class UserRegistrationRequestDto {
 
     @NotEmpty(message = "First name must not be empty!")
     @Pattern(regexp = "^[\\p{L}\\s'-]+$",
@@ -47,11 +45,4 @@ public class UserRegistrationRequest {
     @Pattern(regexp = "^\\d+$", message = "Invalid phone number format!")
     private String phoneNumber;
 
-    public void usernameToLowerCase(){
-        this.username = username.toLowerCase();
-    }
-
-    public void emailToLowerCase(){
-        this.email = email.toLowerCase();
-    }
 }
