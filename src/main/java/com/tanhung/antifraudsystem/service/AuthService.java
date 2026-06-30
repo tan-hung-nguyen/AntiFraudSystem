@@ -1,12 +1,12 @@
 package com.tanhung.antifraudsystem.service;
 
-import com.tanhung.antifraudsystem.dto.request.AuthenticationRequest;
-import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequest;
-import com.tanhung.antifraudsystem.dto.request.UserChangeRoleRequest;
-import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequest;
-import com.tanhung.antifraudsystem.dto.response.AuthenticationResponse;
-import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponse;
-import com.tanhung.antifraudsystem.dto.response.StatusResponse;
+import com.tanhung.antifraudsystem.dto.request.AuthenticationRequestDto;
+import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequestDto;
+import com.tanhung.antifraudsystem.dto.request.UserRoleChangeRequestDto;
+import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequestDto;
+import com.tanhung.antifraudsystem.dto.response.AuthenticationResponseDto;
+import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
+import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
@@ -32,6 +32,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService {
 
+    public enum RoleValue{
+        ADMINISTRATOR, MERCHANT, SUPPORT
+    }
     private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
     private final UserMapper userMapper;
@@ -39,47 +42,127 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public Map<String, Object> register(UserRegistrationRequest userRequest) throws RegisterException {
+    public Map<String, Object> register(UserRegistrationRequestDto userRequest) throws RegisterException {
+        validateUserRegistration(userRequest);
+        User user = userMapper.toEntity(userRequest);
+        return save(user);
+    }
 
-        if(userRequest == null) {
+    private void validateUserRegistration(UserRegistrationRequestDto registrationRequest) throws RegisterException {
+        if(registrationRequest == null){
             throw new RegisterNullException("Object must not be null!", HttpStatus.BAD_REQUEST);
         }
+        validateUsername(registrationRequest.getUsername());
+        validateEmail(registrationRequest.getEmail());
+        validatePhoneNumber(registrationRequest.getPhoneNumber());
+    }
 
-        userRequest.usernameToLowerCase();
-        if (userRequest.getEmail() != null) {
-            userRequest.emailToLowerCase();
-        }
+    private void validateUsername(String username){
+        validateUsernameFormat(username);
+        checkUsernameAvailability(username);
+    }
 
-        if(userRequest.getUsername().startsWith("admin") ||
-        userRequest.getUsername().startsWith("root")){
+    private void validateUsernameFormat(String username) throws UsernameReservedWordException{
+        if(!isValidUsername(username)){
             throw new UsernameReservedWordException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
         }
-        if (userRepo.existsByUsername(userRequest.getUsername())) {
-            throw new RegisterConflictException("Username is already taken!", HttpStatus.CONFLICT);
-        }
-        if (userRequest.getEmail() != null &&
-                userRepo.existsByEmail(userRequest.getEmail())) {
-            throw new RegisterConflictException("Email is already in used!", HttpStatus.CONFLICT);
-        }
-        if (userRequest.getPhoneNumber() != null &&
-                userRepo.existsByPhoneNumber(userRequest.getPhoneNumber())) {
-            throw new RegisterConflictException("Phone number is already in used!", HttpStatus.CONFLICT);
-        }
+    }
 
-        String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
-        User user = userMapper.toEntity(userRequest);
-        user.setPassword(encodedPassword);
+    private boolean isValidUsername(String username){
+        return !username.startsWith("admin") &&
+                !username.startsWith("root");
+    }
 
-        if(userRepo.count() == 0){
-            Role adminRole = roleRepo.findRoleByRoleValue("ADMINISTRATOR");
-            user.setRole(adminRole);
-            user.setActive(true);
-        } else {
-            Role merchantRole = roleRepo.findRoleByRoleValue("MERCHANT");
-            user.setRole(merchantRole);
-            user.setActive(false);
+    private void checkUsernameAvailability(String username) throws UsernameConflictException{
+        if(isUsernameExist(username)){
+            throw new UsernameConflictException("Username is already taken!", HttpStatus.CONFLICT);
         }
+    }
+
+    private boolean isUsernameExist(String username){
+        return userRepo.existsByUsername(username);
+    }
+
+    private void validateEmail(String email){
+        if(email != null){
+            checkEmailAvailability(email);
+        }
+    }
+
+    private void checkEmailAvailability(String email) throws EmailConflictException{
+        if(isEmailExist(email)){
+            throw new UsernameConflictException("Email is already in used!", HttpStatus.CONFLICT);
+        }
+    }
+
+    private boolean isEmailExist(String email){
+        return userRepo.existsByEmail(email);
+    }
+
+    private void validatePhoneNumber(String phoneNumber){
+        if(phoneNumber != null){
+            checkPhoneNumberAvailability(phoneNumber);
+        }
+    }
+
+    private void checkPhoneNumberAvailability(String phoneNumber) throws PhoneNumberConflictException{
+        if(isPhoneNumberConflict(phoneNumber)){
+            throw new PhoneNumberConflictException("Phone number is already in used!", HttpStatus.CONFLICT);
+        }
+    }
+
+    private boolean isPhoneNumberConflict(String phoneNumber){
+        return userRepo.existsByPhoneNumber(phoneNumber);
+    }
+
+    private Map<String, Object> save(User user) {
+        prepareUser(user);
         userRepo.save(user);
+        return buildRegistrationResponse(user);
+    }
+
+    private void prepareUser(User user){
+        normalizedUserField(user);
+        encodeUserPassword(user);
+        assignRoleToUser(user);
+    }
+
+    private void normalizedUserField(User user){
+        user.usernameToLowerCase();
+        if(user.getEmail() != null){
+            user.emailToLowerCase();
+        }
+    }
+
+    private void encodeUserPassword(User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    }
+
+    private void assignRoleToUser(User user){
+        if(isFirstUser()){
+            assignAdminRole(user);
+        } else {
+            assignMerchantRole(user);
+        }
+    }
+
+    private boolean isFirstUser(){
+        return userRepo.count() == 0;
+    }
+
+    private void assignAdminRole(User user){
+        Role adminRole = roleRepo.findRoleByRoleValue(RoleValue.ADMINISTRATOR.toString());
+        user.setRole(adminRole);
+        user.setActive(true);
+    }
+
+    private void assignMerchantRole(User user){
+        Role merchantRole = roleRepo.findRoleByRoleValue(RoleValue.MERCHANT.toString());
+        user.setRole(merchantRole);
+        user.setActive(false);
+    }
+
+    private Map<String, Object> buildRegistrationResponse(User user){
         String jwtToken = jwtService.generateToken(user);
         Map<String, Object> response = new HashMap<>();
         response.put("user_info", userMapper.toDto(user));
@@ -87,16 +170,17 @@ public class AuthService {
         return response;
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
+    public AuthenticationResponseDto authenticate(AuthenticationRequestDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername().toLowerCase(), request.getPassword()));
         User user = userRepo.findByUsername(request.getUsername().toLowerCase());
         String jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse
+        return AuthenticationResponseDto
                 .builder()
                 .token(jwtToken)
                 .build();
     }
+
     public List<UserResponseDto> getAllUsers(){
         return userRepo.findAll(Sort.by("id"))
                 .stream()
@@ -106,16 +190,20 @@ public class AuthService {
     }
 
     @Transactional
-    public DeleteStatusResponse deleteUser(String username) throws UsernameNotFoundException{
-        if(!userRepo.existsByUsername(username)){
+    public DeleteStatusResponseDto deleteUser(String username){
+        if(!isUsernameExist(username)){
             throw new UsernameNotFoundException("Username not found!");
         }
+        return delete(username);
+    }
+
+    private DeleteStatusResponseDto delete(String username){
         userRepo.deleteUserByUsername(username);
-        return new DeleteStatusResponse(username, "Deleted successfully!");
+        return new DeleteStatusResponseDto(username, " Deleted successfully!");
     }
 
     @Transactional
-    public UserResponseDto changeRole(UserChangeRoleRequest user) throws UsernameNotFoundException, RoleChangeException{
+    public UserResponseDto changeRole(UserRoleChangeRequestDto user) throws UsernameNotFoundException, RoleChangeException{
         User userFound = userRepo.findByUsername(user.getUsername().toLowerCase());
         if(userFound == null){
             throw new UsernameNotFoundException("Username not found!");
@@ -138,7 +226,7 @@ public class AuthService {
     }
 
     @Transactional
-    public StatusResponse setUserActiveStatus(UserAccessChangeRequest request) throws UsernameNotFoundException, UserStatusException {
+    public StatusResponseDto setUserStatus(UserAccessChangeRequestDto request) throws UsernameNotFoundException, UserStatusException {
         User found = userRepo.findByUsername(request.getUsername().toLowerCase());
         if(found == null) throw new UsernameNotFoundException("User not found!");
         if(found.getRole().getRoleValue().equalsIgnoreCase("administrator")){
@@ -155,10 +243,10 @@ public class AuthService {
 
         if(request.getOperation().equalsIgnoreCase("unlock")){
             found.setActive(true);
-            return new StatusResponse("User " + found.getUsername() + " unlocked!");
+            return new StatusResponseDto("User " + found.getUsername() + " unlocked!");
         } else if(request.getOperation().equalsIgnoreCase("lock")){
             found.setActive(false);
-            return new StatusResponse("User " + found.getUsername() + " locked!");
+            return new StatusResponseDto("User " + found.getUsername() + " locked!");
         } else {
             throw new InvalidOperationException("Invalid operation!", HttpStatus.BAD_REQUEST);
         }
