@@ -1,16 +1,13 @@
 package com.tanhung.antifraudsystem.service;
 
-import com.tanhung.antifraudsystem.dto.request.StolenCardRequest;
-import com.tanhung.antifraudsystem.dto.request.SuspiciousIpRequest;
-import com.tanhung.antifraudsystem.dto.request.TransactionRequest;
-import com.tanhung.antifraudsystem.dto.response.ActionResponse;
-import com.tanhung.antifraudsystem.dto.response.IPResponse;
-import com.tanhung.antifraudsystem.dto.response.StatusResponse;
-import com.tanhung.antifraudsystem.dto.response.StolenCardResponse;
+import com.tanhung.antifraudsystem.dto.request.StolenCardNumberRequestDto;
+import com.tanhung.antifraudsystem.dto.request.SuspiciousIpRequestDto;
+import com.tanhung.antifraudsystem.dto.request.TransactionRequestDto;
+import com.tanhung.antifraudsystem.dto.response.*;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.StolenCardMapper;
 import com.tanhung.antifraudsystem.mapper.SuspiciousIpAddressMapper;
-import com.tanhung.antifraudsystem.model.CardValidator;
+import com.tanhung.antifraudsystem.model.CardNumberValidator;
 import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import com.tanhung.antifraudsystem.repo.StolenCardRepo;
@@ -34,7 +31,7 @@ public class AntiFraudService {
     private final StolenCardRepo stolenCardRepo;
     private final SuspiciousIpAddressMapper suspiciousIpAddressMapper;
     private final StolenCardMapper stolenCardMapper;
-    public ActionResponse checkRequest(TransactionRequest request) throws InvalidAmountException{
+    public ActionResponseDto checkRequest(TransactionRequestDto request) throws InvalidAmountException{
 
         String result;
         Set<String> infos = new TreeSet<>();
@@ -53,7 +50,7 @@ public class AntiFraudService {
         }
 
         boolean isStolenCard = stolenCardRepo.existsStolenCardByCardNumber(request.getCardNumber());
-        boolean isSuspiciousIp = suspiciousIPRepo.existsByIp(request.getIpAddress());
+        boolean isSuspiciousIp = suspiciousIPRepo.existsByIpAddress(request.getIpAddress());
         if(isStolenCard){
             result = "PROHIBITED";
             infos.add("card-number");
@@ -62,37 +59,53 @@ public class AntiFraudService {
             result = "PROHIBITED";
             infos.add("ip");
         }
-        if(result.equalsIgnoreCase("ALLOWED")) infos.remove("none");
-
-        return new ActionResponse(result, infos.toString());
+        String infosString = infos.toString();
+        infosString = infosString.substring(1, infosString.length() - 1);
+        return new ActionResponseDto(result, infosString);
     }
 
     @Transactional
-    public IPResponse addIP(SuspiciousIpRequest ipAddress) throws IPAddressException{
+    public IPResponseDto addIP(SuspiciousIpRequestDto ipAddress) throws IPAddressNullException{
         if(ipAddress == null){
             throw new IPAddressNullException("IP object cannot be null!", HttpStatus.BAD_REQUEST);
         }
-        if(suspiciousIPRepo.existsByIp(ipAddress.getIpAddress())){
-            throw new IPAddressConflictException(ipAddress.getIpAddress() + " is existed in the list!", HttpStatus.CONFLICT);
-        }
-        SuspiciousIPAddress entityIpAddress = suspiciousIPRepo.save(suspiciousIpAddressMapper.toEntity(ipAddress));
+        checkIfIpAddressExist(ipAddress.getIpAddress());
+        SuspiciousIPAddress ip = addIpToList(ipAddress);
+        return buildResponse(ip);
+    }
 
-        return suspiciousIpAddressMapper.toDto(entityIpAddress);
+    private void checkIfIpAddressExist(String ipAddress) throws IPAddressConflictException{
+        if(isIpAddressExist(ipAddress)){
+            throw new IPAddressConflictException(ipAddress + " is existed in the list!", HttpStatus.CONFLICT);
+        }
+    }
+
+    private boolean isIpAddressExist(String ipAddress){
+        return suspiciousIPRepo.existsByIpAddress(ipAddress);
+    }
+
+    private SuspiciousIPAddress addIpToList(SuspiciousIpRequestDto ipAddress){
+        SuspiciousIPAddress ipEntity = suspiciousIpAddressMapper.toEntity(ipAddress);
+        return suspiciousIPRepo.save(ipEntity);
+    }
+
+    private IPResponseDto buildResponse(SuspiciousIPAddress ipAddress){
+        return suspiciousIpAddressMapper.toDto(ipAddress);
     }
 
     @Transactional
-    public StatusResponse deleteIP(String ip) throws IPAddressException{
+    public StatusResponseDto deleteIP(String ip) throws IPAddressException{
         if(ip == null) throw new IPAddressNullException("IP address must not be null!", HttpStatus.BAD_REQUEST);
 
-        if(!suspiciousIPRepo.existsByIp(ip)){
+        if(!suspiciousIPRepo.existsByIpAddress(ip)){
             throw new IPAddressNotFoundException("IP address not found!", HttpStatus.NOT_FOUND);
         }
 
-        suspiciousIPRepo.deleteByIp(ip);
-        return new StatusResponse("IP " + ip + " successfully removed!");
+        suspiciousIPRepo.deleteByIpAddress(ip);
+        return new StatusResponseDto("IP " + ip + " successfully removed!");
     }
 
-    public List<IPResponse> getAllSuspiciousIPs(){
+    public List<IPResponseDto> getAllSuspiciousIPs(){
         return suspiciousIPRepo.findAll(Sort.by("id"))
                 .stream()
                 .map(suspiciousIpAddressMapper::toDto)
@@ -100,9 +113,9 @@ public class AntiFraudService {
     }
 
     @Transactional
-    public StolenCardResponse addStolenCardNumber(StolenCardRequest card) throws  StolenCardException{
+    public StolenCardResponseDto addStolenCardNumber(StolenCardNumberRequestDto card) throws  StolenCardException{
         if(card == null) throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
-        if(!CardValidator.isValidCardNumber(card.getCardNumber())){
+        if(!CardNumberValidator.isValidCardNumber(card.getCardNumber())){
             throw new InvalidCardNumberException("Card number is invalid!", HttpStatus.BAD_REQUEST);
         }
 
@@ -117,17 +130,17 @@ public class AntiFraudService {
     }
 
     @Transactional
-    public StatusResponse deleteStolenCardNumber(String cardNumber){
+    public StatusResponseDto deleteStolenCardNumber(String cardNumber){
         if(cardNumber == null) throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
         if(!stolenCardRepo.existsStolenCardByCardNumber(cardNumber)) {
             throw new StolenCardNumberNotFoundException(cardNumber + " not found!", HttpStatus.NOT_FOUND);
         }
 
         stolenCardRepo.deleteStolenCardByCardNumber(cardNumber);
-        return new StatusResponse("Card " + cardNumber + " successfully removed!");
+        return new StatusResponseDto("Card " + cardNumber + " successfully removed!");
     }
 
-    public List<StolenCardResponse> getAllStolenCards(){
+    public List<StolenCardResponseDto> getAllStolenCards(){
         return stolenCardRepo.findAll(Sort.by("id"))
                 .stream()
                 .map(stolenCardMapper::toDto)
