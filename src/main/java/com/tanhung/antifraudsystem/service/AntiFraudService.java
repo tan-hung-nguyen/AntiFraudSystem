@@ -71,7 +71,7 @@ public class AntiFraudService {
         }
         validateIpDuplicate(ipAddress.getIpAddress());
         SuspiciousIPAddress ip = addIpToList(ipAddress);
-        return buildResponse(ip);
+        return buildIpResponse(ip);
     }
 
     private void validateIpDuplicate(String ipAddress) throws IPAddressConflictException{
@@ -89,7 +89,7 @@ public class AntiFraudService {
         return suspiciousIPRepo.save(ipEntity);
     }
 
-    private IPResponseDto buildResponse(SuspiciousIPAddress ipAddress){
+    private IPResponseDto buildIpResponse(SuspiciousIPAddress ipAddress){
         return suspiciousIpAddressMapper.toDto(ipAddress);
     }
 
@@ -121,20 +121,39 @@ public class AntiFraudService {
     }
 
     @Transactional
-    public StolenCardResponseDto addStolenCardNumber(StolenCardNumberRequestDto card) throws  StolenCardException{
-        if(card == null) throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
-        if(!CardNumberValidator.isValidCardNumber(card.getCardNumber())){
+    public StolenCardResponseDto addStolenCardNumber(StolenCardNumberRequestDto stolenCard) throws  StolenCardNullException{
+        if(stolenCard == null){
+            throw new StolenCardNullException("Your card object must not be null!", HttpStatus.BAD_REQUEST);
+        }
+        validateCardNumber(stolenCard.getCardNumber());
+        validateCardNumberDuplicate(stolenCard.getCardNumber());
+        StolenCard cardEntity = addStolenCard(stolenCard);
+        return buildStolenCardResponse(cardEntity);
+    }
+
+    private void validateCardNumber(String cardNumber) throws InvalidCardNumberException{
+        if(!CardNumberValidator.isValidCardNumber(cardNumber)){
             throw new InvalidCardNumberException("Card number is invalid!", HttpStatus.BAD_REQUEST);
         }
+    }
 
-        if(stolenCardRepo.existsStolenCardByCardNumber(card.getCardNumber())){
-            throw new StolenCardConflictException(card.getCardNumber() + " is existed in the list!", HttpStatus.CONFLICT);
+    private void validateCardNumberDuplicate(String cardNumber) throws StolenCardConflictException{
+        if(isCardNumberExist(cardNumber)){
+            throw new StolenCardConflictException(cardNumber + " is existed in the list!", HttpStatus.CONFLICT);
         }
+    }
 
+    private boolean isCardNumberExist(String cardNumber){
+        return stolenCardRepo.existsStolenCardByCardNumber(cardNumber);
+    }
 
-        StolenCard cardEntity = stolenCardRepo.save(stolenCardMapper.toEntity(card));
+    private StolenCard addStolenCard(StolenCardNumberRequestDto stolenCard){
+        StolenCard cardEntity = stolenCardMapper.toEntity(stolenCard);
+        return stolenCardRepo.save(cardEntity);
+    }
 
-        return stolenCardMapper.toDto(cardEntity);
+    private StolenCardResponseDto buildStolenCardResponse(StolenCard stolenCard){
+        return stolenCardMapper.toDto(stolenCard);
     }
 
     @Transactional
