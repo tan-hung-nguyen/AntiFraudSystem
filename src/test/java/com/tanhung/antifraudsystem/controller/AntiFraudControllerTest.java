@@ -1,17 +1,13 @@
 package com.tanhung.antifraudsystem.controller;
 
 import com.tanhung.antifraudsystem.config.JwtAuthenticationFilter;
-import com.tanhung.antifraudsystem.dto.response.ActionResponse;
-import com.tanhung.antifraudsystem.dto.response.IPResponse;
-import com.tanhung.antifraudsystem.dto.response.StatusResponse;
-import com.tanhung.antifraudsystem.dto.response.StolenCardResponse;
+import com.tanhung.antifraudsystem.dto.response.*;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AntiFraudService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -62,7 +58,7 @@ class AntiFraudControllerTest {
                     }
                     """;
 
-            ActionResponse expected = new ActionResponse("ALLOWED", "none");
+            ActionResponseDto expected = new ActionResponseDto("ALLOWED", "none");
             Mockito.when(antiFraudService.checkRequest(Mockito.any()))
                     .thenReturn(expected);
 
@@ -398,7 +394,7 @@ class AntiFraudControllerTest {
                     }
                     """;
 
-            IPResponse expected = new IPResponse(1L, "192.168.1.1");
+            IPResponseDto expected = new IPResponseDto(1L, "192.168.1.1");
             Mockito.when(antiFraudService.addIP(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/antifraud/suspicous-ip")
@@ -518,7 +514,7 @@ class AntiFraudControllerTest {
         @DisplayName("Return \"Ok 200\" when removing an ip from black list successfully")
         void shouldReturnOk_whenRemovingIpAddressFromBlackListSuccessfully() throws Exception {
             Mockito.when(antiFraudService.deleteIP(Mockito.any()))
-                    .thenReturn(new StatusResponse("Ip 192.168.1.1 successfully removed!"));
+                    .thenReturn(new StatusResponseDto("Ip 192.168.1.1 successfully removed!"));
 
             mockMvc.perform(delete("/api/antifraud/suspicious-ip/192.168.1.1")
                             .with(csrf()))
@@ -549,8 +545,8 @@ class AntiFraudControllerTest {
             @Test
             @DisplayName("Return \"Ok 200\" and list of suspicious-ip when black list is not empty")
             void shouldReturnOkAndIpList_whenSuspiciousIpExist() throws Exception{
-                List<IPResponse> expected = new ArrayList<>(List.of(new IPResponse(1L, "testIp"),
-                                                                    new IPResponse(2L, "testIp2")));
+                List<IPResponseDto> expected = new ArrayList<>(List.of(new IPResponseDto(1L, "testIp"),
+                                                                    new IPResponseDto(2L, "testIp2")));
                 Mockito.when(antiFraudService.getAllSuspiciousIPs()).thenReturn(expected);
                 mockMvc.perform(get("/api/antifraud/suspicious-ip")
                         .with(csrf()))
@@ -585,7 +581,7 @@ class AntiFraudControllerTest {
                         }
                         """;
                 Mockito.when(antiFraudService.addStolenCardNumber(Mockito.any()))
-                                .thenReturn(new StolenCardResponse(1L, "4000008449433403"));
+                                .thenReturn(new StolenCardResponseDto(1L, "4000008449433403"));
                 mockMvc.perform(post("/api/antifraud/stolencard")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -689,7 +685,7 @@ class AntiFraudControllerTest {
             @DisplayName("Return \"Ok 200\" when delete stolen card from the list successfully")
             void shouldReturnOk_whenDeleteStolenCardNumberSuccessfully() throws Exception{
                 Mockito.when(antiFraudService.deleteStolenCardNumber(Mockito.any()))
-                        .thenReturn(new StatusResponse("Card 4000008449433403 deleted successfully!"));
+                        .thenReturn(new StatusResponseDto("Card 4000008449433403 deleted successfully!"));
 
                 mockMvc.perform(delete("/api/antifraud/stolencard/4000008449433403")
                         .with(csrf()))
@@ -773,8 +769,8 @@ class AntiFraudControllerTest {
             @DisplayName("Return \"Ok 200\" and list of stolen card numbers when list is not empty")
             void shouldReturnOkAndCardNumberList_whenListIsNotEmpty() throws Exception{
                 Mockito.when(antiFraudService.getAllStolenCards())
-                        .thenReturn(List.of(new StolenCardResponse(1L, "number"),
-                                new StolenCardResponse(2L, "number2")));
+                        .thenReturn(List.of(new StolenCardResponseDto(1L, "number"),
+                                new StolenCardResponseDto(2L, "number2")));
 
                 mockMvc.perform(get("/api/antifraud/stolencard")
                         .with(csrf()))

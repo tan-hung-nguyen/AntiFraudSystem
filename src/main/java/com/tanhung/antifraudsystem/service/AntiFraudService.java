@@ -12,6 +12,7 @@ import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
+import jakarta.transaction.Status;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -99,7 +100,7 @@ public class AntiFraudService {
             throw new IPAddressNullException("IP address must not be null!", HttpStatus.BAD_REQUEST);
         }
         validateIpExistence(ip);
-        return delete(ip);
+        return processDeleteIpAddress(ip);
     }
 
     private void validateIpExistence(String ipAddress) throws IPAddressNotFoundException{
@@ -108,7 +109,7 @@ public class AntiFraudService {
         }
     }
 
-    private StatusResponseDto delete(String ip){
+    private StatusResponseDto processDeleteIpAddress(String ip){
         suspiciousIPRepo.deleteByIpAddress(ip);
         return new StatusResponseDto("IP " + ip + " successfully removed!");
     }
@@ -157,12 +158,21 @@ public class AntiFraudService {
     }
 
     @Transactional
-    public StatusResponseDto deleteStolenCardNumber(String cardNumber){
-        if(cardNumber == null) throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
-        if(!stolenCardRepo.existsStolenCardByCardNumber(cardNumber)) {
+    public StatusResponseDto deleteStolenCardNumber(String cardNumber) throws StolenCardNullException{
+        if(cardNumber == null) {
+            throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
+        }
+        validateStolenCardNumberExistence(cardNumber);
+        return processDeleteStolenCardNumber(cardNumber);
+    }
+
+    private void validateStolenCardNumberExistence(String cardNumber) throws StolenCardNumberNotFoundException{
+        if(!isCardNumberExist(cardNumber)) {
             throw new StolenCardNumberNotFoundException(cardNumber + " not found!", HttpStatus.NOT_FOUND);
         }
+    }
 
+    private StatusResponseDto processDeleteStolenCardNumber(String cardNumber){
         stolenCardRepo.deleteStolenCardByCardNumber(cardNumber);
         return new StatusResponseDto("Card " + cardNumber + " successfully removed!");
     }

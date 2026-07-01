@@ -1,11 +1,10 @@
 package com.tanhung.antifraudsystem.service;
 
-import com.tanhung.antifraudsystem.dto.request.StolenCardRequest;
-import com.tanhung.antifraudsystem.dto.request.SuspiciousIpRequest;
-import com.tanhung.antifraudsystem.dto.response.ActionResponse;
-import com.tanhung.antifraudsystem.dto.response.IPResponse;
-import com.tanhung.antifraudsystem.dto.response.StatusResponse;
-import com.tanhung.antifraudsystem.dto.response.StolenCardResponse;
+import com.tanhung.antifraudsystem.dto.request.StolenCardNumberRequestDto;
+import com.tanhung.antifraudsystem.dto.request.SuspiciousIpRequestDto;
+import com.tanhung.antifraudsystem.dto.response.IPResponseDto;
+import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
+import com.tanhung.antifraudsystem.dto.response.StolenCardResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.StolenCardMapper;
 import com.tanhung.antifraudsystem.mapper.StolenCardMapperImpl;
@@ -20,16 +19,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,11 +50,11 @@ class AntiFraudServiceTest {
     @Nested
     @DisplayName("addIP method")
     class addIPTest{
-        private SuspiciousIpRequest request;
+        private SuspiciousIpRequestDto request;
         @BeforeEach
         void setUpRequest()
         {
-          request = SuspiciousIpRequest
+          request = SuspiciousIpRequestDto
                     .builder()
                     .ipAddress("192.168.1.1").build();
         }
@@ -67,12 +62,12 @@ class AntiFraudServiceTest {
         @DisplayName("Should return IPResponse dto when add successfully")
         void shouldReturnIPResponseDto_whenAddSuccessfully() {
 
-            Mockito.when(suspiciousIPRepo.existsByIp(Mockito.eq("192.168.1.1")))
+            Mockito.when(suspiciousIPRepo.existsByIpAddress(Mockito.eq("192.168.1.1")))
                     .thenReturn(false);
             Mockito.when(suspiciousIPRepo.save(Mockito.any()))
                     .thenReturn(new SuspiciousIPAddress(1L, "192.168.1.1"));
 
-            IPResponse actual = antiFraudService.addIP(request);
+            IPResponseDto actual = antiFraudService.addIP(request);
 
             assertEquals(request.getIpAddress(), actual.getIpAddress());
             assertEquals(1, actual.getId());
@@ -88,7 +83,7 @@ class AntiFraudServiceTest {
             IPAddressException ex = assertThrows(IPAddressException.class,
                         () -> antiFraudService.addIP(null));
             assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-            Mockito.verify(suspiciousIPRepo, Mockito.never()).existsByIp(Mockito.any());
+            Mockito.verify(suspiciousIPRepo, Mockito.never()).existsByIpAddress(Mockito.any());
             Mockito.verify(suspiciousIPRepo, Mockito.never()).save(Mockito.any());
         }
 
@@ -96,7 +91,7 @@ class AntiFraudServiceTest {
         @DisplayName("Should throw IPAddressConflictException with conflict status 409 " +
                 "when ip address is already in the list")
         void shouldThrowIPAddressConflictException_whenIpAddressIsAlreadyInTheList() {
-            Mockito.when(suspiciousIPRepo.existsByIp(Mockito.eq("192.168.1.1")))
+            Mockito.when(suspiciousIPRepo.existsByIpAddress(Mockito.eq("192.168.1.1")))
                     .thenReturn(true);
 
             IPAddressConflictException ex = assertThrows(IPAddressConflictException.class,
@@ -114,15 +109,15 @@ class AntiFraudServiceTest {
         @Test
         @DisplayName("Should return StatusResponse when deleting successfully")
         void shouldReturnStatusResponse_whenDeletingSuccessfully() {
-            Mockito.when(suspiciousIPRepo.existsByIp(Mockito.eq(ipAddress)))
+            Mockito.when(suspiciousIPRepo.existsByIpAddress(Mockito.eq(ipAddress)))
                     .thenReturn(true);
 
-            StatusResponse actual = antiFraudService.deleteIP(ipAddress);
+            StatusResponseDto actual = antiFraudService.deleteIP(ipAddress);
 
             assertNotNull(actual);
             assertNotNull(actual.getStatus());
             assertEquals("IP 192.168.1.1 successfully removed!", actual.getStatus());
-            Mockito.verify(suspiciousIPRepo).deleteByIp(Mockito.any());
+            Mockito.verify(suspiciousIPRepo).deleteByIpAddress(Mockito.any());
 
         }
 
@@ -133,8 +128,8 @@ class AntiFraudServiceTest {
                     () -> antiFraudService.deleteIP(null));
 
             assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-            Mockito.verify(suspiciousIPRepo, Mockito.never()).existsByIp(Mockito.any());
-            Mockito.verify(suspiciousIPRepo, Mockito.never()).deleteByIp(Mockito.any());
+            Mockito.verify(suspiciousIPRepo, Mockito.never()).existsByIpAddress(Mockito.any());
+            Mockito.verify(suspiciousIPRepo, Mockito.never()).deleteByIpAddress(Mockito.any());
 
         }
 
@@ -145,7 +140,7 @@ class AntiFraudServiceTest {
                     () -> antiFraudService.deleteIP(ipAddress));
 
             assertEquals("Not Found", ex.getStatus().getReasonPhrase());
-            Mockito.verify(suspiciousIPRepo, Mockito.never()).deleteByIp(ipAddress);
+            Mockito.verify(suspiciousIPRepo, Mockito.never()).deleteByIpAddress(ipAddress);
 
         }
     }
@@ -160,7 +155,7 @@ class AntiFraudServiceTest {
                         .thenReturn(List.of(new SuspiciousIPAddress(1L, "test"),
                                             new SuspiciousIPAddress(2L, "test2")));
 
-            List<IPResponse> actual = antiFraudService.getAllSuspiciousIPs();
+            List<IPResponseDto> actual = antiFraudService.getAllSuspiciousIPs();
 
             assertFalse(actual.isEmpty());
             assertEquals(2, actual.size());
@@ -175,7 +170,7 @@ class AntiFraudServiceTest {
             Mockito.when(suspiciousIPRepo.findAll(Sort.by("id")))
                     .thenReturn(List.of());
 
-            List<IPResponse> actual = antiFraudService.getAllSuspiciousIPs();
+            List<IPResponseDto> actual = antiFraudService.getAllSuspiciousIPs();
             assertTrue(actual.isEmpty());
             assertNotNull(actual);
             Mockito.verify(suspiciousIPRepo).findAll(Sort.by("id"));
@@ -185,11 +180,11 @@ class AntiFraudServiceTest {
     @Nested
     @DisplayName("addStolenCardNumber Method")
     class addStolenCardNumberTest{
-        private StolenCardRequest request;
+        private StolenCardNumberRequestDto request;
 
         @BeforeEach
         void setUpRequest() {
-            request = StolenCardRequest.builder()
+            request = StolenCardNumberRequestDto.builder()
                     .cardNumber("4000008449433403")
                     .build();
         }
@@ -202,7 +197,7 @@ class AntiFraudServiceTest {
             Mockito.when(stolenCardRepo.save(Mockito.any()))
                     .thenReturn(new StolenCard(1L, "4000008449433403"));
 
-            StolenCardResponse actual = antiFraudService.addStolenCardNumber(request);
+            StolenCardResponseDto actual = antiFraudService.addStolenCardNumber(request);
 
             assertEquals(1, actual.getId());
             assertEquals("4000008449433403", actual.getCardNumber());
@@ -258,7 +253,7 @@ class AntiFraudServiceTest {
         void shouldReturnStatusResponse_whenDeletingCardNumberSuccessfully() {
             Mockito.when(stolenCardRepo.existsStolenCardByCardNumber(cardNumber))
                     .thenReturn(true);
-            StatusResponse actual = antiFraudService.deleteStolenCardNumber(cardNumber);
+            StatusResponseDto actual = antiFraudService.deleteStolenCardNumber(cardNumber);
 
             assertNotNull(actual);
             assertNotNull(actual.getStatus());
@@ -298,7 +293,7 @@ class AntiFraudServiceTest {
             Mockito.when(stolenCardRepo.findAll(Sort.by("id")))
                     .thenReturn(List.of(new StolenCard(1L, "Test"),
                             new StolenCard(2L, "Test")));
-            List<StolenCardResponse> actual = antiFraudService.getAllStolenCards();
+            List<StolenCardResponseDto> actual = antiFraudService.getAllStolenCards();
 
             assertFalse(actual.isEmpty());
             assertEquals(2, actual.size());
@@ -313,7 +308,7 @@ class AntiFraudServiceTest {
         void shouldReturnEmptyListOfStolenCardResponse_whenListIsEmpty() {
             Mockito.when(stolenCardRepo.findAll(Sort.by("id")))
                     .thenReturn(List.of());
-            List<StolenCardResponse> actual = antiFraudService.getAllStolenCards();
+            List<StolenCardResponseDto> actual = antiFraudService.getAllStolenCards();
 
             assertTrue(actual.isEmpty());
             assertNotNull(actual);
