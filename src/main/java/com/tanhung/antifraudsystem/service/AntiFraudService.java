@@ -69,12 +69,12 @@ public class AntiFraudService {
         if(ipAddress == null){
             throw new IPAddressNullException("IP object cannot be null!", HttpStatus.BAD_REQUEST);
         }
-        checkIfIpAddressExist(ipAddress.getIpAddress());
+        validateIpDuplicate(ipAddress.getIpAddress());
         SuspiciousIPAddress ip = addIpToList(ipAddress);
         return buildResponse(ip);
     }
 
-    private void checkIfIpAddressExist(String ipAddress) throws IPAddressConflictException{
+    private void validateIpDuplicate(String ipAddress) throws IPAddressConflictException{
         if(isIpAddressExist(ipAddress)){
             throw new IPAddressConflictException(ipAddress + " is existed in the list!", HttpStatus.CONFLICT);
         }
@@ -94,13 +94,21 @@ public class AntiFraudService {
     }
 
     @Transactional
-    public StatusResponseDto deleteIP(String ip) throws IPAddressException{
-        if(ip == null) throw new IPAddressNullException("IP address must not be null!", HttpStatus.BAD_REQUEST);
+    public StatusResponseDto deleteIP(String ip) throws IPAddressNullException{
+        if(ip == null){
+            throw new IPAddressNullException("IP address must not be null!", HttpStatus.BAD_REQUEST);
+        }
+        validateIpExistence(ip);
+        return delete(ip);
+    }
 
-        if(!suspiciousIPRepo.existsByIpAddress(ip)){
+    private void validateIpExistence(String ipAddress) throws IPAddressNotFoundException{
+        if(!isIpAddressExist(ipAddress)){
             throw new IPAddressNotFoundException("IP address not found!", HttpStatus.NOT_FOUND);
         }
+    }
 
+    private StatusResponseDto delete(String ip){
         suspiciousIPRepo.deleteByIpAddress(ip);
         return new StatusResponseDto("IP " + ip + " successfully removed!");
     }
