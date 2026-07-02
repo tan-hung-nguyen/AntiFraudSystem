@@ -1,4 +1,4 @@
-package com.tanhung.antifraudsystem.validator;
+package com.tanhung.antifraudsystem.validators;
 
 import com.tanhung.antifraudsystem.enums.TransactionResult;
 import com.tanhung.antifraudsystem.model.Transaction;

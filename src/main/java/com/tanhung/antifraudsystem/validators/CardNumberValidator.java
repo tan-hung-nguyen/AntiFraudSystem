@@ -1,4 +1,4 @@
-package com.tanhung.antifraudsystem.validator;
+package com.tanhung.antifraudsystem.validators;
 
 public interface CardNumberValidator {
     static boolean isValidCardNumber(String number){

@@ -1,4 +1,4 @@
-package com.tanhung.antifraudsystem.validator;
+package com.tanhung.antifraudsystem.validators;
 
 import com.tanhung.antifraudsystem.enums.TransactionResult;
 import com.tanhung.antifraudsystem.model.Transaction;
@@ -31,7 +31,7 @@ public class CorrelationValidator {
                 transaction.getCardNumber(),
                 transaction.getDate().minusHours(1),
                 transaction.getDate(),
-                transaction.getIp()
+                transaction.getIpAddress()
         );
 
         return toViolation(otherIps.size(), "ip-correlation");
