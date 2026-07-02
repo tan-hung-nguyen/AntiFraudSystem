@@ -16,8 +16,7 @@ import java.time.format.DateTimeParseException;
 @Mapper(componentModel = "spring", imports = {Region.class})
 public interface TransactionMapper {
     @Mappings({
-            @Mapping(target = "region",
-                    expression = "java(Region.builder().code(dto.getRegion().toUpperCase()).build())"),
+            @Mapping(target = "region", ignore = true),
             @Mapping(target = "date", source = "date", qualifiedByName = "parseDate")
     })
     Transaction toEntity(TransactionRequestDto dto);
