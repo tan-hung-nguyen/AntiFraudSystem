@@ -1,6 +1,6 @@
 package com.tanhung.antifraudsystem.exceptionHandler;
 
-import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
+import com.tanhung.antifraudsystem.dto.response.ErrorResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,8 +20,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private ResponseEntity<ErrorResponse> handleJacksonException(Throwable cause){
-        ErrorResponse error = new ErrorResponse();
+    private ResponseEntity<ErrorResponseDto> handleJacksonException(Throwable cause){
+        ErrorResponseDto error = new ErrorResponseDto();
         error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
         error.setStatusCode(HttpStatus.BAD_REQUEST.value());
         error.setTimestamp(Instant.now());
@@ -36,8 +36,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    private ResponseEntity<ErrorResponse> getErrorResponse(RuntimeException e, HttpStatus status){
-        ErrorResponse error = new ErrorResponse();
+    private ResponseEntity<ErrorResponseDto> getErrorResponse(RuntimeException e, HttpStatus status){
+        ErrorResponseDto error = new ErrorResponseDto();
         error.setError(status.getReasonPhrase());
         error.setStatusCode(status.value());
         error.setTimestamp(Instant.now());
@@ -62,36 +62,42 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e){
+    public ResponseEntity<ErrorResponseDto> handleUsernameNotFoundException(UsernameNotFoundException e){
         return getErrorResponse(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NumberFormatException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidNumberFormatException(NumberFormatException e){
+    public ResponseEntity<ErrorResponseDto> handleInvalidNumberFormatException(NumberFormatException e){
         return getErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidAmountException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidAmountException(InvalidAmountException e) {
+    public ResponseEntity<ErrorResponseDto> handleInvalidAmountException(InvalidAmountException e) {
         return getErrorResponse(e, e.getStatus());
     }
 
-    @ExceptionHandler({UserStatusException.class, RegisterException.class, RoleChangeException.class})
-    public ResponseEntity<ErrorResponse> handleAuthServiceException(AuthServiceException e){
+    @ExceptionHandler({UserStatusChangeException.class, RegisterException.class, RoleChangeException.class})
+    public ResponseEntity<ErrorResponseDto> handleAuthServiceException(AuthServiceException e){
         return getErrorResponse(e, e.getStatus());
     }
 
     @ExceptionHandler({IPAddressException.class, StolenCardException.class})
-    public ResponseEntity<ErrorResponse> handleAntiFraudServiceException(AntiFraudServiceException e){
+    public ResponseEntity<ErrorResponseDto> handleAntiFraudServiceException(AntiFraudServiceException e){
         return getErrorResponse(e, e.getStatus());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException e){
+    public ResponseEntity<ErrorResponseDto> handleConstraintViolationException(ConstraintViolationException e){
         return getErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+    public ResponseEntity<ErrorResponseDto> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         return handleJacksonException(e.getCause());
+    }
+
+    @ExceptionHandler(InvalidTransactionDataException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidTransactionDataException(InvalidTransactionDataException e){
+        return getErrorResponse(e, e.getStatus());
     }
 }
