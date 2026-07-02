@@ -3,6 +3,7 @@ package com.tanhung.antifraudsystem.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,8 +17,10 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
+    private BigDecimal amount;
     @Column(name = "ip_address", nullable = false)
-    private String ip;
+    private String ipAddress;
     @Column(name = "card_number", nullable = false)
     private String cardNumber;
     @Column(nullable = false)
