@@ -28,4 +28,10 @@ public class TransactionRequestDto {
         @NotNull(message = "Card number must not be null!")
         @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits, no spaces!")
         private String cardNumber;
+
+        @NotNull
+        private String region;
+
+        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
+        private String date;
 }
