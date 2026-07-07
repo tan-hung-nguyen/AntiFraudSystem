@@ -1,7 +1,10 @@
 package com.tanhung.antifraudsystem.validators;
 
-public interface CardNumberValidator {
-    static boolean isValidCardNumber(String number){
+public final class CardNumberValidator {
+    private CardNumberValidator(){
+        throw new UnsupportedOperationException("Utility class - do not instantiate");
+    }
+    public static boolean isValidCardNumber(String number){
         if(number == null || number.isBlank() || number.length() != 16) return false;
         int sum = 0;
         int checkNum = number.charAt(number.length() - 1) - '0';
@@ -19,5 +22,5 @@ public interface CardNumberValidator {
             alternate = !alternate;
         }
         return ((10 - (sum % 10)) % 10) == checkNum;
-    };
+    }
 }
