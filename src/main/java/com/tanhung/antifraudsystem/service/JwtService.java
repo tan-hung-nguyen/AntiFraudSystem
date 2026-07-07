@@ -18,8 +18,10 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    private static final long TOKEN_EXPIRATION_MS = 1000 * 60 * 60 * 24;
+
     @Value("${SIGNING_SECRET_KEY}")
-    private String SECRET_KEY;
+    private String secretKey;
 
     //Get username from the claims
     public String extractUsername(String token){
@@ -52,7 +54,7 @@ public class JwtService {
                 .claims(extractClaims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_MS))
                 .signWith(getSignInKey())
                 .compact();
     }
@@ -75,7 +77,7 @@ public class JwtService {
     }
 
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
