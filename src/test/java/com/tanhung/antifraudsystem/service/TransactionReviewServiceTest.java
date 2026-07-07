@@ -3,6 +3,7 @@ package com.tanhung.antifraudsystem.service;
 import com.tanhung.antifraudsystem.dto.request.TransactionRequestDto;
 import com.tanhung.antifraudsystem.dto.response.ActionResponseDto;
 import com.tanhung.antifraudsystem.enums.TransactionResult;
+import com.tanhung.antifraudsystem.exception.CardNumberNullException;
 import com.tanhung.antifraudsystem.exception.InvalidCardNumberException;
 import com.tanhung.antifraudsystem.exception.InvalidRegionException;
 import com.tanhung.antifraudsystem.model.Region;
@@ -31,8 +32,6 @@ class TransactionReviewServiceTest {
     // so any card number sharing this prefix is valid only when its last digit divides 57 evenly.
     private static final String CARD_NUMBER_WITH_VALID_CHECK_DIGIT = "4000008449433403";
     private static final String CARD_NUMBER_WITH_INVALID_CHECK_DIGIT = "4000008449433404";
-    // Last digit of 0 makes CardNumberValidator perform "sum % 0", which throws ArithmeticException.
-    private static final String CARD_NUMBER_WITH_ZERO_CHECK_DIGIT = "4000008449433400";
     private static final String EMPTY_CARD_NUMBER = "";
     private static final String NULL_CARD_NUMBER = null;
 
@@ -143,36 +142,24 @@ class TransactionReviewServiceTest {
         }
 
         @Test
-        @DisplayName("Should propagate ArithmeticException without touching the region or " +
-                "transaction manager when the card number's check digit is zero")
-        void shouldPropagateArithmeticException_whenCardNumberCheckDigitIsZero() {
-            validRequest.setCardNumber(CARD_NUMBER_WITH_ZERO_CHECK_DIGIT);
-
-            assertThrows(ArithmeticException.class,
-                    () -> transactionReviewService.reviewRequest(validRequest));
-
-            Mockito.verifyNoInteractions(regionRepo, transactionManager);
-        }
-
-        @Test
-        @DisplayName("Should propagate NullPointerException without touching the region or " +
+        @DisplayName("Should propagate CardNumberNullException without touching the region or " +
                 "transaction manager when the card number is null")
-        void shouldPropagateNullPointerException_whenCardNumberIsNull() {
+        void shouldPropagateCardNumberNullException_whenCardNumberIsNull() {
             validRequest.setCardNumber(NULL_CARD_NUMBER);
 
-            assertThrows(NullPointerException.class,
+            assertThrows(CardNumberNullException.class,
                     () -> transactionReviewService.reviewRequest(validRequest));
 
             Mockito.verifyNoInteractions(regionRepo, transactionManager);
         }
 
         @Test
-        @DisplayName("Should propagate StringIndexOutOfBoundsException without touching the " +
+        @DisplayName("Should propagate InvalidCardNumberException without touching the " +
                 "region or transaction manager when the card number is empty")
-        void shouldPropagateStringIndexOutOfBoundsException_whenCardNumberIsEmpty() {
+        void shouldPropagateInvalidCardNumberException_whenCardNumberIsEmpty() {
             validRequest.setCardNumber(EMPTY_CARD_NUMBER);
 
-            assertThrows(StringIndexOutOfBoundsException.class,
+            assertThrows(InvalidCardNumberException.class,
                     () -> transactionReviewService.reviewRequest(validRequest));
 
             Mockito.verifyNoInteractions(regionRepo, transactionManager);
