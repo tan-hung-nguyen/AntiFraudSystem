@@ -71,17 +71,12 @@ public class GlobalExceptionHandler {
         return getErrorResponse(e, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidAmountException.class)
-    public ResponseEntity<ErrorResponseDto> handleInvalidAmountException(InvalidAmountException e) {
-        return getErrorResponse(e, e.getStatus());
-    }
-
-    @ExceptionHandler({UserStatusChangeException.class, RegisterException.class, RoleChangeException.class})
+    @ExceptionHandler(AuthServiceException.class)
     public ResponseEntity<ErrorResponseDto> handleAuthServiceException(AuthServiceException e){
         return getErrorResponse(e, e.getStatus());
     }
 
-    @ExceptionHandler({IPAddressException.class, StolenCardException.class})
+    @ExceptionHandler(AntiFraudServiceException.class)
     public ResponseEntity<ErrorResponseDto> handleAntiFraudServiceException(AntiFraudServiceException e){
         return getErrorResponse(e, e.getStatus());
     }
@@ -94,10 +89,5 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseDto> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         return handleJacksonException(e.getCause());
-    }
-
-    @ExceptionHandler(InvalidTransactionDataException.class)
-    public ResponseEntity<ErrorResponseDto> handleInvalidTransactionDataException(InvalidTransactionDataException e){
-        return getErrorResponse(e, e.getStatus());
     }
 }
