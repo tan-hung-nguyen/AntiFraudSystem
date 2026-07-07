@@ -152,7 +152,7 @@ public class AuthService {
                 .name(userInfo.getName())
                 .username(userInfo.getUsername())
                 .role(userInfo.getRole())
-                .token(jwtToken)
+                .jwtToken(jwtToken)
                 .build();
     }
 
@@ -163,7 +163,7 @@ public class AuthService {
         String jwtToken = jwtService.generateToken(user);
         return AuthenticationResponseDto
                 .builder()
-                .token(jwtToken)
+                .jwtToken(jwtToken)
                 .build();
     }
 }

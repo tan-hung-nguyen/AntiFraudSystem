@@ -1,11 +1,9 @@
 package com.tanhung.antifraudsystem.service;
 
-import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequestDto;
+import com.tanhung.antifraudsystem.dto.request.AuthenticationRequestDto;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequestDto;
-import com.tanhung.antifraudsystem.dto.request.UserRoleChangeRequestDto;
-import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
-import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
-import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
+import com.tanhung.antifraudsystem.dto.response.AuthenticationResponseDto;
+import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.mapper.UserMapper;
 import com.tanhung.antifraudsystem.mapper.UserMapperImpl;
@@ -19,13 +17,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,7 +69,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("Register first user as administration then return UserDto(id, name, username, role) " +
+        @DisplayName("Register first user as administration then return UserRegistrationResponseDto(id, name, username, role, token) " +
                 "when providing valid all 6 fields (firstname, lastname, username, password, email, phone number)")
         void shouldRegisterFirstUserAsAdministrator_whenValidRequestProvided() {
 
@@ -88,11 +83,12 @@ class AuthServiceTest {
             Mockito.when(userRepo.count()).thenReturn(0L);
             Mockito.when(roleRepo.findRoleByRoleValue("ADMINISTRATOR"))
                     .thenReturn(new Role(1L, "ADMINISTRATOR"));
+            Mockito.when(jwtService.generateToken(Mockito.any())).thenReturn("jwtToken");
 
             ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 
 
-            Map<String, Object> actual = authService.register(requestUser);
+            UserRegistrationResponseDto actual = authService.register(requestUser);
 
             Mockito.verify(userRepo).save(captor.capture());
 
@@ -109,16 +105,16 @@ class AuthServiceTest {
             assertTrue(userEntity.isActive());
 
 
-            //Check if user dto return as desired
-            UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
-            assertEquals("TestFN TestLN", actualDto.getName());
-            assertEquals("testusername", actualDto.getUsername());
-            assertEquals("ADMINISTRATOR", actualDto.getRole());
+            //Check if response dto is returned as desired
+            assertEquals("TestFN TestLN", actual.getName());
+            assertEquals("testusername", actual.getUsername());
+            assertEquals("ADMINISTRATOR", actual.getRole());
+            assertEquals("jwtToken", actual.getJwtToken());
 
         }
 
         @Test
-        @DisplayName("Register user as merchant role after first user then return userDTO(id, name, username, role) " +
+        @DisplayName("Register user as merchant role after first user then return UserRegistrationResponseDto(id, name, username, role, token) " +
                 "when providing valid 4 required infos (firstname, lastname, username, password)")
         void shouldRegisterUserAsMerchant_whenUserNotTheFirstAndEmailAndPhoneNumberAreNull() {
             requestUser.setPhoneNumber(null);
@@ -129,10 +125,11 @@ class AuthServiceTest {
             Mockito.when(userRepo.existsByUsername("testusername")).thenReturn(false);
             Mockito.when(userRepo.count()).thenReturn(1L);
             Mockito.when(roleRepo.findRoleByRoleValue("MERCHANT")).thenReturn(new Role(2L,"MERCHANT"));
+            Mockito.when(jwtService.generateToken(Mockito.any())).thenReturn("jwtToken");
 
             ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 
-            Map<String, Object> actual = authService.register(requestUser);
+            UserRegistrationResponseDto actual = authService.register(requestUser);
 
             //Capture user entity object inside the method
             Mockito.verify(userRepo).save(captor.capture());
@@ -148,11 +145,11 @@ class AuthServiceTest {
             assertEquals("MERCHANT", userEntity.getRole().getRoleValue());
             assertFalse(userEntity.isActive());
 
-            //Check dto
-            UserResponseDto actualDto = (UserResponseDto) actual.get("user_info");
-            assertEquals("TestFN TestLN", actualDto.getName());
-            assertEquals("testusername", actualDto.getUsername());
-            assertEquals("MERCHANT", actualDto.getRole());
+            //Check response dto
+            assertEquals("TestFN TestLN", actual.getName());
+            assertEquals("testusername", actual.getUsername());
+            assertEquals("MERCHANT", actual.getRole());
+            assertEquals("jwtToken", actual.getJwtToken());
 
             Mockito.verify(userRepo, Mockito.never()).existsByEmail(Mockito.any());
             Mockito.verify(userRepo, Mockito.never()).existsByPhoneNumber(Mockito.any());
@@ -240,261 +237,72 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("getAllUsers() method")
-    class getAllUsersMethodTest{
+    @DisplayName("authenticate() method testing")
+    class authenticateMethodTesting {
 
-        @Test
-        @DisplayName("Return a list of user dto when users existed")
-        void shouldReturnListOfUsers_whenUserExisted(){
-            User user = new User(1L, "test","test","test",
-                    "test","test","test",true,new Role(1L, "test"));
-            User user1 = new User(1L, "test","test","test",
-                    "test","test","test",true,new Role(1L, "test"));
-
-            Mockito.when(userRepo.findAll(Sort.by("id"))).thenReturn(List.of(user, user1));
-
-            List<UserResponseDto> actual = authService.getAllUsers();
-
-            assertEquals(2, actual.size());
-            actual.forEach(dto -> assertInstanceOf(UserResponseDto.class, dto));
-        }
-
-        @Test
-        @DisplayName("Return empty list if there is no users")
-        void shouldReturnEmptyList_whenThereIsNoUsers(){
-            Mockito.when(userRepo.findAll(Sort.by("id"))).thenReturn(List.of());
-
-            List<UserResponseDto> actual = authService.getAllUsers();
-
-            assertTrue(actual.isEmpty());
-        }
-    }
-
-    @Nested
-    @DisplayName("deleteUser() method")
-    class deleteUserMethodTest{
-        @Test
-        @DisplayName("Delete user successfully when username is found")
-        void shouldDeleteUserSuccessfully_whenUsernameIsFound(){
-            Mockito.when(userRepo.existsByUsername(Mockito.eq("test"))).thenReturn(true);
-
-            DeleteStatusResponseDto actual = authService.deleteUser("test");
-
-            Mockito.verify(userRepo).deleteUserByUsername(Mockito.any());
-            assertEquals("test", actual.getUsername());
-            assertEquals("Deleted successfully!", actual.getStatus());
-        }
-
-        @Test
-        @DisplayName("Throw UsernameNotFoundException when username is not existed")
-        void shouldThrowUsernameNotFoundException_whenUsernameIsNotExisted() {
-            Mockito.when(userRepo.existsByUsername(Mockito.eq("test"))).thenReturn(false);
-
-            UsernameNotFoundException ex = assertThrows(UsernameNotFoundException.class,
-                    () -> authService.deleteUser("test"));
-
-            assertEquals("Username not found!", ex.getMessage());
-            Mockito.verify(userRepo, Mockito.never()).deleteUserByUsername("test");
-        }
-    }
-
-    @Nested
-    @DisplayName("changeRole() method")
-    class changeRoleMethodTest{
-
-        private UserRoleChangeRequestDto userRoleChangeRequestDto;
-        private User userFound;
-        private UserResponseDto userDto;
+        private AuthenticationRequestDto loginRequest;
+        private User authenticatedUser;
 
         @BeforeEach
         void setUp(){
-            userRoleChangeRequestDto = UserRoleChangeRequestDto
-                                        .builder()
-                                        .username("usernameTest")
-                                        .role("support")
-                                        .build();
-            userFound = User
-                        .builder()
-                        .id(1L)
-                        .firstName("Firstname")
-                        .lastName("Lastname")
-                        .username("usernametest")
-                        .password("Test1234")
-                        .email("test@gmail.com")
-                        .phoneNumber("1234567890")
-                        .isActive(true)
-                        .role(new Role(1L, "MERCHANT")).build();
+            loginRequest = AuthenticationRequestDto.builder()
+                    .username("testusername")
+                    .password("Password123")
+                    .build();
+
+            authenticatedUser = User.builder()
+                    .id(1L)
+                    .firstName("TestFN")
+                    .lastName("TestLN")
+                    .username("testusername")
+                    .password("encodedPassword")
+                    .isActive(true)
+                    .role(new Role(1L, "MERCHANT"))
+                    .build();
         }
 
         @Test
-        @DisplayName("Should change role user to \"SUPPORT\" when the current user's role is other than admin")
-        void shouldChangeUserRoleSuccessfullyToSupport_whenCurrentUserRoleIsOtherThanAdmin() {
-            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
+        @DisplayName("Should return AuthenticationResponseDto with a jwt token when credentials are valid")
+        void shouldReturnAuthenticationResponseWithToken_whenCredentialsAreValid() {
+            Mockito.when(userRepo.findByUsername("testusername")).thenReturn(authenticatedUser);
+            Mockito.when(jwtService.generateToken(authenticatedUser)).thenReturn("jwtToken");
 
-            userDto = authService.changeRole(userRoleChangeRequestDto);
+            AuthenticationResponseDto actual = authService.authenticate(loginRequest);
 
-            //Check return user dto
-            assertEquals("Firstname Lastname", userDto.getName());
-            assertEquals("usernametest", userDto.getUsername());
-            assertEquals("SUPPORT", userDto.getRole());
+            assertEquals("jwtToken", actual.getJwtToken());
+
+            ArgumentCaptor<Authentication> authenticationCaptor = ArgumentCaptor.forClass(Authentication.class);
+            Mockito.verify(authenticationManager).authenticate(authenticationCaptor.capture());
+            assertEquals("testusername", authenticationCaptor.getValue().getPrincipal());
+            assertEquals("Password123", authenticationCaptor.getValue().getCredentials());
+
+            Mockito.verify(jwtService).generateToken(authenticatedUser);
         }
 
         @Test
-        @DisplayName("Should throw UsernameNotFoundException when the username not found")
-        void shouldThrowUsernameNotFoundException_whenUsernameNotFound() {
+        @DisplayName("Should normalize the username to lowercase for both authentication and user lookup " +
+                "when the username has mixed case")
+        void shouldNormalizeUsernameToLowercase_whenUsernameHasMixedCase() {
+            loginRequest.setUsername("TestUsername");
+            Mockito.when(userRepo.findByUsername("testusername")).thenReturn(authenticatedUser);
+            Mockito.when(jwtService.generateToken(authenticatedUser)).thenReturn("jwtToken");
 
-            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(null);
+            authService.authenticate(loginRequest);
 
-            UsernameNotFoundException ex = assertThrows(UsernameNotFoundException.class,
-                    () -> authService.changeRole(userRoleChangeRequestDto));
+            ArgumentCaptor<Authentication> authenticationCaptor = ArgumentCaptor.forClass(Authentication.class);
+            Mockito.verify(authenticationManager).authenticate(authenticationCaptor.capture());
+            assertEquals("testusername", authenticationCaptor.getValue().getPrincipal());
 
-            assertEquals("Username not found!", ex.getMessage());
+            Mockito.verify(userRepo).findByUsername("testusername");
         }
 
         @Test
-        @DisplayName("Should throw RoleNotAvailableException when the request role is not MERCHANT nor SUPPORT")
-        void shouldThrowRoleNotAvailableException_whenRequestRoleIsNotMerchantNorSupport(){
+        @DisplayName("Should throw NullPointerException without authenticating when the request is null")
+        void shouldThrowNullPointerException_whenRequestIsNull() {
+            assertThrows(NullPointerException.class, () -> authService.authenticate(null));
 
-            userRoleChangeRequestDto = new UserRoleChangeRequestDto("usernametest", "MODER");
-
-            RoleChangeException ex = assertThrows(RoleNotAvailableException.class,
-                    ()-> authService.changeRole(userRoleChangeRequestDto));
-
-            assertEquals("MODER role is not available!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-        }
-
-        @Test
-        @DisplayName("Should throw RoleConflictException when the request role is the same as current role")
-        void shouldThrowRoleConflictException_whenRequestRoleSameAsCurrentRole(){
-
-            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
-
-            userRoleChangeRequestDto = new UserRoleChangeRequestDto("usernametest", "MERCHANT");
-
-            RoleChangeException ex = assertThrows(RoleConflictException.class,
-                    ()-> authService.changeRole(userRoleChangeRequestDto));
-            assertEquals("MERCHANT has already been assigned to usernametest!", ex.getMessage());
-            assertEquals("Conflict", ex.getStatus().getReasonPhrase());
-
-        }
-
-        @Test
-        @DisplayName("Should throw RoleChangeException when making change role on admin")
-         void shouldThrowRoleChangeException_whenRequestRoleChangeIsAdministrator() {
-            userFound.setRole(new Role(1L, "ADMINISTRATOR"));
-            Mockito.when(userRepo.findByUsername("usernametest")).thenReturn(userFound);
-
-            userRoleChangeRequestDto = new UserRoleChangeRequestDto("usernametest", "merchant");
-
-            RoleChangeException ex = assertThrows(RoleChangeException.class,
-                    () -> authService.changeRole(userRoleChangeRequestDto));
-
-            assertEquals("This is admin. You can't change their role!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-        }
-
-    }
-
-    @Nested
-    @DisplayName("setUserActiveStatus() method")
-    class setUserActiveStatusMethodTest{
-
-        private UserAccessChangeRequestDto userAccessChangeRequestDto;
-        private User userFound;
-
-
-
-        @BeforeEach
-        void setUp(){
-            userAccessChangeRequestDto = new UserAccessChangeRequestDto("test","unlock");
-            userFound = new User(1L,
-                    "Firstname",
-                    "Lastname",
-                    "test",
-                    "Test1234",
-                    "test@gmail.com",
-                    "1234567890",
-                    false, new Role(2L, "MERCHANT"));
-        }
-
-        @Test
-        @DisplayName("Should activate user successfully when user is locked with \"UNLOCK\" operation")
-        void shouldActivateUserSuccessfully_whenUserIsLockedWithValidOperation() {
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-
-            StatusResponseDto actual = authService.changeUserStatus(userAccessChangeRequestDto);
-
-            assertEquals("User test unlocked!", actual.getStatus());
-            assertTrue(userFound.isActive());
-        }
-
-        @Test
-        @DisplayName("Should deactivate user successfully when user is unlocked with \"LOCK\" operation")
-        void shouldDeactivateUserSuccessfully_whenUserIsUnlockedWithValidOperation() {
-            userFound.setActive(true);
-            userAccessChangeRequestDto = new UserAccessChangeRequestDto("test", "LOCK");
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-
-            StatusResponseDto actual = authService.changeUserStatus(userAccessChangeRequestDto);
-
-            assertEquals("User test locked!", actual.getStatus());
-            assertFalse(userFound.isActive());
-        }
-
-        @Test
-        @DisplayName("Should throw InvalidOperationException when using other operation other than \"LOCK\" and \"UNLOCK\"")
-        void shouldThrowInvalidOperationException_whenUsingInvalidOperation() {
-
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-            userAccessChangeRequestDto = new UserAccessChangeRequestDto("test", "OPEN");
-
-            UserStatusChangeException ex = assertThrows(InvalidOperationChangeException.class,
-                    () -> authService.changeUserStatus(userAccessChangeRequestDto));
-            assertEquals("Invalid operation!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-        }
-
-        @Test
-        @DisplayName("Should throw UserStatusException when trying deactivate admin")
-        void shouldThrowUserStatusException_whenDeactivatingAdmin(){
-            userFound.setRole(new Role(1L, "ADMINISTRATOR"));
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-
-            UserStatusChangeException ex = assertThrows(UserStatusChangeException.class,
-                    () -> authService.changeUserStatus(userAccessChangeRequestDto));
-
-            assertEquals("This is admin. You can't deactivate!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-        }
-
-        @Test
-        @DisplayName("Should throw UserStatusException when activating an active user")
-        void shouldThrowUserStatusException_whenActivatingAnActiveUser(){
-            userFound.setActive(true);
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-
-            UserStatusChangeException ex = assertThrows(UserStatusChangeException.class,
-                    () -> authService.changeUserStatus(userAccessChangeRequestDto));
-
-            assertEquals("User test has already been activated!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
-        }
-
-        @Test
-        @DisplayName("Should throw UserStatusException when deactivating an inactive user")
-        void shouldThrowUserStatusException_whenDeactivatingAnInactiveUser(){
-
-            userAccessChangeRequestDto = new UserAccessChangeRequestDto("test", "lock");
-            Mockito.when(userRepo.findByUsername("test")).thenReturn(userFound);
-
-            UserStatusChangeException ex = assertThrows(UserStatusChangeException.class,
-                    () -> authService.changeUserStatus(userAccessChangeRequestDto));
-
-            assertEquals("User test has already been deactivated!", ex.getMessage());
-            assertEquals("Bad Request", ex.getStatus().getReasonPhrase());
+            Mockito.verifyNoInteractions(authenticationManager, userRepo, jwtService);
         }
     }
-
 
 }
