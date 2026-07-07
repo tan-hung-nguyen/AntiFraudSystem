@@ -10,7 +10,6 @@ import com.tanhung.antifraudsystem.repo.SuspiciousIPRepo;
 import com.tanhung.antifraudsystem.validators.SuspiciousIpValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,10 +21,10 @@ public class SuspiciousIpService {
     private final SuspiciousIpAddressMapper suspiciousIpAddressMapper;
     private final SuspiciousIpValidator suspiciousIpValidator;
 
-    public SuspiciousIPAddress addIp(SuspiciousIpRequestDto requestIp) throws IPAddressConflictException{
+    public SuspiciousIPAddress addIp(SuspiciousIpRequestDto requestIp){
         String ipAddress = requestIp.getIpAddress();
         if(suspiciousIpValidator.isSuspiciousIp(ipAddress)){
-            throw new IPAddressConflictException(ipAddress + " already exists in the suspicious ip list!", HttpStatus.CONFLICT);
+            throw new IPAddressConflictException(ipAddress + " already exists in the suspicious ip list!");
         }
         SuspiciousIPAddress ipEntity = suspiciousIpAddressMapper.toEntity(requestIp);
         return suspiciousIPRepo.save(ipEntity);
@@ -33,7 +32,7 @@ public class SuspiciousIpService {
 
     public void deleteIp(String ip){
         if(suspiciousIpValidator.isSuspiciousIp(ip)){
-            throw new IPAddressNotFoundException(ip + " not found!", HttpStatus.NOT_FOUND);
+            throw new IPAddressNotFoundException(ip + " not found!");
         }
         suspiciousIPRepo.deleteByIpAddress(ip);
     }

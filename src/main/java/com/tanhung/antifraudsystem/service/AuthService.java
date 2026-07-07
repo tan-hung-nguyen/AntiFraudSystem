@@ -13,7 +13,6 @@ import com.tanhung.antifraudsystem.model.User;
 import com.tanhung.antifraudsystem.repo.RoleRepo;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,7 +36,7 @@ public class AuthService {
 
     private void validateUserRegistration(UserRegistrationRequestDto registrationRequest){
         if(registrationRequest == null){
-            throw new RegisterNullException("Object must not be null!", HttpStatus.BAD_REQUEST);
+            throw new RegisterNullException("Object must not be null!");
         }
         validateUsername(registrationRequest.getUsername());
         validateEmail(registrationRequest.getEmail());
@@ -51,7 +50,7 @@ public class AuthService {
 
     private void validateUsernameFormat(String username){
         if(!isUsernameStartsWithReservedWord(username)){
-            throw new UsernameReservedWordException("Username cannot start with reserved word!", HttpStatus.BAD_REQUEST);
+            throw new UsernameReservedWordException("Username cannot start with reserved word!");
         }
     }
 
@@ -62,7 +61,7 @@ public class AuthService {
 
     private void checkUsernameAvailability(String username){
         if(isUsernameExist(username)){
-            throw new UsernameConflictException("Username is already taken!", HttpStatus.CONFLICT);
+            throw new UsernameConflictException("Username is already taken!");
         }
     }
 
@@ -78,7 +77,7 @@ public class AuthService {
 
     private void checkEmailAvailability(String email) {
         if(isEmailExist(email)){
-            throw new EmailConflictException("Email is already in used!", HttpStatus.CONFLICT);
+            throw new EmailConflictException("Email is already in used!");
         }
     }
 
@@ -94,7 +93,7 @@ public class AuthService {
 
     private void checkPhoneNumberAvailability(String phoneNumber){
         if(isPhoneNumberTaken(phoneNumber)){
-            throw new PhoneNumberConflictException("Phone number is already in used!", HttpStatus.CONFLICT);
+            throw new PhoneNumberConflictException("Phone number is already in used!");
         }
     }
 

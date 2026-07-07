@@ -10,7 +10,6 @@ import com.tanhung.antifraudsystem.repo.StolenCardRepo;
 import com.tanhung.antifraudsystem.validators.StolenCardValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,24 +21,22 @@ public class StolenCardService {
     private final StolenCardRepo stolenCardRepo;
     private final StolenCardValidator stolenCardValidator;
 
-    public StolenCard addCard(StolenCardNumberRequestDto stolenCard) throws StolenCardConflictException{
-        if(isStolenCard(stolenCard.getCardNumber())){
-            throw new StolenCardConflictException(stolenCard.getCardNumber() + " already exists in the stolen card list!", HttpStatus.CONFLICT);
+    public StolenCard addCard(StolenCardNumberRequestDto stolenCard){
+        String cardNumber = stolenCard.getCardNumber();
+        if(stolenCardValidator.isStolenCard(cardNumber)){
+            throw new StolenCardConflictException(stolenCard.getCardNumber() + " already exists in the stolen card list!");
         }
         StolenCard card = stolenCardMapper.toEntity(stolenCard);
         return stolenCardRepo.save(card);
     }
 
-    public void deleteCard(String cardNumber) throws StolenCardNumberNotFoundException{
-        if(isStolenCard(cardNumber)){
-            throw new StolenCardNumberNotFoundException(cardNumber + " not found!", HttpStatus.NOT_FOUND);
+    public void deleteCard(String cardNumber){
+        if(stolenCardValidator.isStolenCard(cardNumber)){
+            throw new StolenCardNumberNotFoundException(cardNumber + " not found!");
         }
         stolenCardRepo.deleteStolenCardByCardNumber(cardNumber);
     }
 
-    private boolean isStolenCard(String cardNumber){
-        return stolenCardValidator.isStolenCard(cardNumber);
-    }
 
     public StolenCardResponseDto convertToDto(StolenCard stolenCard){
         return stolenCardMapper.toDto(stolenCard);

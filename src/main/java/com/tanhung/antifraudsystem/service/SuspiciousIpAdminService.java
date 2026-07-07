@@ -7,7 +7,6 @@ import com.tanhung.antifraudsystem.exception.IPAddressNullException;
 import com.tanhung.antifraudsystem.model.SuspiciousIPAddress;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class SuspiciousIpAdminService {
     @Transactional
     public IPResponseDto addIP(SuspiciousIpRequestDto ipAddress){
         if(ipAddress == null){
-            throw new IPAddressNullException("IP object cannot be null!", HttpStatus.BAD_REQUEST);
+            throw new IPAddressNullException("IP object cannot be null!");
         }
         SuspiciousIPAddress ip = proceedAddSuspiciousIp(ipAddress);
         return buildIpResponse(ip);
@@ -37,7 +36,7 @@ public class SuspiciousIpAdminService {
     @Transactional
     public StatusResponseDto deleteIP(String ip){
         if(ip == null){
-            throw new IPAddressNullException("IP address must not be null!", HttpStatus.BAD_REQUEST);
+            throw new IPAddressNullException("IP address must not be null!");
         }
         return proceedDeleteIpAddress(ip);
     }

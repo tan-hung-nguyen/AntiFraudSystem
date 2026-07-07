@@ -1,7 +1,6 @@
 package com.tanhung.antifraudsystem.service;
 
 import com.tanhung.antifraudsystem.model.User;
-import com.tanhung.antifraudsystem.model.UserPrinciple;
 import com.tanhung.antifraudsystem.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

@@ -9,7 +9,6 @@ import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.validators.CardNumberValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class StolenCardAdminService {
     @Transactional
     public StolenCardResponseDto addStolenCardNumber(StolenCardNumberRequestDto stolenCard){
         if(stolenCard == null){
-            throw new StolenCardNullException("Your card object must not be null!", HttpStatus.BAD_REQUEST);
+            throw new StolenCardNullException("Your card object must not be null!");
         }
         StolenCard cardEntity = proceedAddStolenCardNumber(stolenCard);
         return buildStolenCardResponse(cardEntity);
@@ -30,7 +29,7 @@ public class StolenCardAdminService {
 
     private StolenCard proceedAddStolenCardNumber(StolenCardNumberRequestDto requestCard){
         if(!CardNumberValidator.isValidCardNumber(requestCard.getCardNumber())){
-            throw new InvalidCardNumberException(requestCard.getCardNumber() + " card number is invalid!", HttpStatus.BAD_REQUEST);
+            throw new InvalidCardNumberException(requestCard.getCardNumber() + " card number is invalid!");
         }
         return stolenCardService.addCard(requestCard);
     }
@@ -42,7 +41,7 @@ public class StolenCardAdminService {
     @Transactional
     public StatusResponseDto deleteStolenCardNumber(String cardNumber){
         if(cardNumber == null) {
-            throw new StolenCardNullException("Your card number must not be null!", HttpStatus.BAD_REQUEST);
+            throw new StolenCardNullException("Your card number must not be null!");
         }
         return proceedDeleteStolenCardNumber(cardNumber);
     }

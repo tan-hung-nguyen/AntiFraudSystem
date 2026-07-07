@@ -9,7 +9,6 @@ import com.tanhung.antifraudsystem.model.Transaction;
 import com.tanhung.antifraudsystem.repo.RegionRepo;
 import com.tanhung.antifraudsystem.validators.CardNumberValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +25,7 @@ public class TransactionReviewService {
 
     private void validateCardNumberIsValid(String cardNumber){
         if(!CardNumberValidator.isValidCardNumber(cardNumber)){
-            throw new InvalidCardNumberException("Card number is invalid!", HttpStatus.BAD_REQUEST);
+            throw new InvalidCardNumberException("Card number is invalid!");
         }
     }
 
@@ -34,7 +33,7 @@ public class TransactionReviewService {
         Transaction transaction = transactionManager.convertToEntity(requestDto);
         Region region = findRegion(requestDto.getRegion());
         if(region == null){
-            throw new InvalidRegionException(requestDto.getRegion() + " is invalid!", HttpStatus.BAD_REQUEST);
+            throw new InvalidRegionException(requestDto.getRegion() + " is invalid!");
         }
         transaction.setRegion(region);
         ActionResponseDto response = transactionManager.proceedTransaction(transaction);

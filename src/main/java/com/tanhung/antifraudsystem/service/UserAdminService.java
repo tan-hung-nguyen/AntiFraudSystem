@@ -19,7 +19,6 @@ import com.tanhung.antifraudsystem.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +65,7 @@ public class UserAdminService {
 
     private void checkRequestRoleValue(String role){
         if(!isValidRole(role)){
-            throw new RoleNotAvailableException(role.toUpperCase() + " role is not available!", HttpStatus.BAD_REQUEST);
+            throw new RoleNotAvailableException(role.toUpperCase() + " role is not available!");
         }
     }
 
@@ -92,13 +91,13 @@ public class UserAdminService {
         checkIfTargetUserIsAdmin(targetUser);
         if(isRoleAssigned(targetUser, newRole)){
             throw new RoleConflictException(newRole.toUpperCase() + " has already been assigned to " +
-                                                    targetUser.getUsername() + "!", HttpStatus.CONFLICT);
+                                                    targetUser.getUsername() + "!");
         }
     }
 
     private void checkIfTargetUserIsAdmin(User user){
         if(isAdmin(user)){
-            throw new RoleChangeException("This is admin. You can't change their role!", HttpStatus.BAD_REQUEST);
+            throw new RoleChangeException("This is admin. You can't change their role!");
         }
     }
 
@@ -118,7 +117,7 @@ public class UserAdminService {
     public StatusResponseDto changeUserStatus(UserAccessChangeRequestDto request){
         User user = getUserByUsername(request.getUsername().toLowerCase());
         if (isAdmin(user)) {
-            throw new UserStatusChangeException("This is admin. You can't deactivate!", HttpStatus.BAD_REQUEST);
+            throw new UserStatusChangeException("This is admin. You can't deactivate!");
         }
         return makeChangeStatus(user, request.getOperation());
     }
@@ -130,7 +129,7 @@ public class UserAdminService {
 
     private void checkIfOperationIsValid(String operation){
         if(!isValidOperation(operation)){
-            throw new InvalidOperationChangeException("Invalid operation!", HttpStatus.BAD_REQUEST);
+            throw new InvalidOperationChangeException("Invalid operation!");
         }
     }
 
@@ -147,11 +146,11 @@ public class UserAdminService {
     private void validateStatusChange(User user, String operation){
         if(isAlreadyActivated(user, operation)){
             throw new UserStatusChangeException("User " + user.getUsername() +
-                    " has already been activated!", HttpStatus.BAD_REQUEST);
+                    " has already been activated!");
         }
         if(isAlreadyDeactivated(user, operation)){
             throw new UserStatusChangeException("User " + user.getUsername() +
-                    " has already been deactivated!", HttpStatus.BAD_REQUEST);
+                    " has already been deactivated!");
         }
     }
 
