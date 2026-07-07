@@ -40,6 +40,7 @@ public class TransactionValidator {
         String info = violations.stream()
                 .map((violation) ->getCause(violation,finalResult))
                 .distinct()
+                .filter(s -> s != null && !s.isBlank())
                 .sorted()
                 .collect(Collectors.joining(", "));
 
