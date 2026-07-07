@@ -18,6 +18,6 @@ public interface CardNumberValidator {
             sum += n;
             alternate = !alternate;
         }
-        return sum % checkNum == 0;
+        return ((10 - (sum % 10)) % 10) == checkNum;
     };
 }
