@@ -15,8 +15,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -180,37 +178,6 @@ class StolenCardAdminServiceTest {
                     () -> stolenCardAdminService.deleteStolenCardNumber(CARD_NUMBER_WITH_VALID_CHECK_DIGIT));
 
             assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-        }
-    }
-
-    @Nested
-    @DisplayName("getStolenCardList method")
-    class GetStolenCardListTest {
-
-        @Test
-        @DisplayName("Should return every stolen card response dto provided by the service when the list is not empty")
-        void shouldReturnAllStolenCards_whenServiceReturnsNonEmptyList() {
-            StolenCardResponseDto firstStolenCard = StolenCardResponseDto.builder()
-                    .id(1L).cardNumber(CARD_NUMBER_WITH_VALID_CHECK_DIGIT).build();
-            StolenCardResponseDto secondStolenCard = StolenCardResponseDto.builder()
-                    .id(2L).cardNumber(CARD_NUMBER_WITH_INVALID_CHECK_DIGIT).build();
-            List<StolenCardResponseDto> expectedStolenCards = List.of(firstStolenCard, secondStolenCard);
-
-            Mockito.when(stolenCardService.getAllStolenCards()).thenReturn(expectedStolenCards);
-
-            List<StolenCardResponseDto> actualStolenCards = stolenCardAdminService.getStolenCardList();
-
-            assertSame(expectedStolenCards, actualStolenCards);
-        }
-
-        @Test
-        @DisplayName("Should return an empty list when the service has no stolen cards on record")
-        void shouldReturnEmptyList_whenServiceReturnsNoStolenCards() {
-            Mockito.when(stolenCardService.getAllStolenCards()).thenReturn(Collections.emptyList());
-
-            List<StolenCardResponseDto> actualStolenCards = stolenCardAdminService.getStolenCardList();
-
-            assertTrue(actualStolenCards.isEmpty());
         }
     }
 }

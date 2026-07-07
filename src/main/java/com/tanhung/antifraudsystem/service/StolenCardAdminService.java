@@ -5,7 +5,6 @@ import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.StolenCardResponseDto;
 import com.tanhung.antifraudsystem.exception.InvalidCardNumberException;
 import com.tanhung.antifraudsystem.exception.StolenCardNullException;
-import com.tanhung.antifraudsystem.exception.CardNumberNullException;
 import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.validators.CardNumberValidator;
 import jakarta.transaction.Transactional;
