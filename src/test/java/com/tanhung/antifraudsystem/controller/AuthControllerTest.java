@@ -1,12 +1,15 @@
 package com.tanhung.antifraudsystem.controller;
 
 import com.tanhung.antifraudsystem.config.JwtAuthenticationFilter;
+import com.tanhung.antifraudsystem.dto.response.AuthenticationResponseDto;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
+import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponseDto;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.exception.*;
 import com.tanhung.antifraudsystem.exceptionHandler.GlobalExceptionHandler;
 import com.tanhung.antifraudsystem.service.AuthService;
+import com.tanhung.antifraudsystem.service.UserAdminService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,20 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,8 +57,9 @@ class AuthControllerTest {
                         "password" : "Test1234"
                     }
                     """;
-            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN", "testusername", "ADMINISTRATOR");
-            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken" );
+            UserRegistrationResponseDto expected = UserRegistrationResponseDto.builder()
+                    .id(1L).name("TestFN TestLN").username("testusername")
+                    .role("ADMINISTRATOR").jwtToken("jwtToken").build();
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -69,14 +67,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.user_info.id").exists())
-                    .andExpect(jsonPath("$.user_info.name").exists())
-                    .andExpect(jsonPath("$.user_info.username").exists())
-                    .andExpect(jsonPath("$.user_info.role").exists())
-                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andExpect(jsonPath("$.role").exists())
+                    .andExpect(jsonPath("$.password").doesNotExist())
+                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.jwtToken").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
             Mockito.verify(authService).register(Mockito.any());
@@ -233,23 +231,23 @@ class AuthControllerTest {
                         "password" : "Test1234"
                     }
                     """;
-            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestFN TestLN",
-                    "testusername","ADMINISTRATOR");
-            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
+            UserRegistrationResponseDto expected = UserRegistrationResponseDto.builder()
+                    .id(1L).name("TestFN TestFN TestLN").username("testusername")
+                    .role("ADMINISTRATOR").jwtToken("jwtToken").build();
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.user_info.id").exists())
-                    .andExpect(jsonPath("$.user_info.name").exists())
-                    .andExpect(jsonPath("$.user_info.username").exists())
-                    .andExpect(jsonPath("$.user_info.role").exists())
-                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andExpect(jsonPath("$.role").exists())
+                    .andExpect(jsonPath("$.password").doesNotExist())
+                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.jwtToken").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 
@@ -364,23 +362,23 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN TestLN",
-                    "testusername","ADMINISTRATOR");
-            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
+            UserRegistrationResponseDto expected = UserRegistrationResponseDto.builder()
+                    .id(1L).name("TestFN TestLN TestLN").username("testusername")
+                    .role("ADMINISTRATOR").jwtToken("jwtToken").build();
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.user_info.id").exists())
-                    .andExpect(jsonPath("$.user_info.name").exists())
-                    .andExpect(jsonPath("$.user_info.username").exists())
-                    .andExpect(jsonPath("$.user_info.role").exists())
-                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andExpect(jsonPath("$.role").exists())
+                    .andExpect(jsonPath("$.password").doesNotExist())
+                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.jwtToken").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
 
         }
@@ -520,9 +518,9 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN",
-                    "testusername_.","ADMINISTRATOR");
-            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
+            UserRegistrationResponseDto expected = UserRegistrationResponseDto.builder()
+                    .id(1L).name("TestFN TestLN").username("testusername_.")
+                    .role("ADMINISTRATOR").jwtToken("jwtToken").build();
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -530,14 +528,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.user_info.id").exists())
-                    .andExpect(jsonPath("$.user_info.name").exists())
-                    .andExpect(jsonPath("$.user_info.username").exists())
-                    .andExpect(jsonPath("$.user_info.role").exists())
-                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andExpect(jsonPath("$.role").exists())
+                    .andExpect(jsonPath("$.password").doesNotExist())
+                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.jwtToken").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 
@@ -674,10 +672,10 @@ class AuthControllerTest {
                     }
                     """;
 
-            UserResponseDto userDto = new UserResponseDto(1L, "TestFN TestLN",
-                    "testusername","ADMINISTRATOR");
+            UserRegistrationResponseDto expected = UserRegistrationResponseDto.builder()
+                    .id(1L).name("TestFN TestLN").username("testusername")
+                    .role("ADMINISTRATOR").jwtToken("jwtToken").build();
 
-            Map<String, Object> expected = Map.of("user_info", userDto, "token", "jwtToken");
             Mockito.when(authService.register(Mockito.any())).thenReturn(expected);
 
             mockMvc.perform(post("/api/auth/register")
@@ -685,14 +683,14 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.user_info.id").exists())
-                    .andExpect(jsonPath("$.user_info.name").exists())
-                    .andExpect(jsonPath("$.user_info.username").exists())
-                    .andExpect(jsonPath("$.user_info.role").exists())
-                    .andExpect(jsonPath("$.user_info.password").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.email").doesNotExist())
-                    .andExpect(jsonPath("$.user_info.phoneNumber").doesNotExist())
-                    .andExpect(jsonPath("$.token").exists())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.username").exists())
+                    .andExpect(jsonPath("$.role").exists())
+                    .andExpect(jsonPath("$.password").doesNotExist())
+                    .andExpect(jsonPath("$.email").doesNotExist())
+                    .andExpect(jsonPath("$.phoneNumber").doesNotExist())
+                    .andExpect(jsonPath("$.jwtToken").exists())
                     .andExpect(jsonPath("$.errors").doesNotExist());
         }
 
@@ -711,7 +709,7 @@ class AuthControllerTest {
                     """;
 
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameConflictException("Email is already been used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Email is already been used!"));
 
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
@@ -813,7 +811,7 @@ class AuthControllerTest {
                     """;
 
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameConflictException("Phone number is already been used", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Phone number is already been used"));
 
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
@@ -839,7 +837,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(null))
-                    .thenThrow(new RegisterNullException("Object must not be null!", HttpStatus.BAD_REQUEST));
+                    .thenThrow(new RegisterNullException("Object must not be null!"));
 
             mockMvc.perform(post("/api/auth/register")
                     .with(csrf())
@@ -866,8 +864,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameReservedWordException("Username cannot start with reserved word!",
-                                                            HttpStatus.BAD_REQUEST));
+                    .thenThrow(new UsernameReservedWordException("Username cannot start with reserved word!"));
 
             mockMvc.perform(post("/api/auth/register")
                     .with(csrf())
@@ -894,7 +891,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameConflictException("Username is already taken!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Username is already taken!"));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -920,7 +917,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameConflictException("Email is already in used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Email is already in used!"));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -946,7 +943,7 @@ class AuthControllerTest {
                     }
                     """;
             Mockito.when(authService.register(Mockito.any()))
-                    .thenThrow(new UsernameConflictException("Phone number is already in used!", HttpStatus.CONFLICT));
+                    .thenThrow(new UsernameConflictException("Phone number is already in used!"));
             mockMvc.perform(post("/api/auth/register")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -986,513 +983,186 @@ class AuthControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/auth/list")
-    class getListUserTest {
-        @Test
-        @DisplayName("Return \"Ok 200\" status and list of users when requesting list")
-        void shouldReturnOk_whenGetListOfUsersSuccessfullyWithUser() throws Exception {
-            UserResponseDto mock = new UserResponseDto(1L, "test1", "test1", "ADMINISTRATOR");
-            UserResponseDto mock1 = new UserResponseDto(1L, "test2", "test2", "MERCHANT");
-
-            Mockito.when(authService.getAllUsers()).thenReturn(List.of(mock, mock1));
-
-            mockMvc.perform(get("/api/auth/list")
-                            .with(csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(2)));
-
-        }
+    @DisplayName("POST /api/auth/authenticate")
+    class authenticateUserTest {
 
         @Test
-        @DisplayName("Return \"Ok 200\" status and empty list when no users")
-        void shouldReturnOk_whenGetListOfUsersSuccessfullyWithNoUser() throws Exception{
-            Mockito.when(authService.getAllUsers()).thenReturn(List.of());
-
-            mockMvc.perform(get("/api/auth/list")
-                    .with(csrf()))
-                    .andExpect(jsonPath("$").isEmpty());
-        }
-    }
-
-    @Nested
-    @DisplayName("DELETE /api/auth/user/{username}")
-    class deleteUserTest {
-
-        @Test
-        @DisplayName("Return \"Ok 200\" status and deletion response when deleting successfully")
-        void shouldReturnOk_whenDeletingUserSuccessfully() throws Exception {
-
-            Mockito.when(authService.deleteUser(Mockito.any()))
-                    .thenReturn(new DeleteStatusResponseDto("test_.", "Deleted successfully!"));
-
-            mockMvc.perform(delete("/api/auth/user/test_.")
-                            .with(csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.username").value("test_."))
-                    .andExpect(jsonPath("$.status").exists());
-
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and throw UsernameNotFound exception when username not found")
-        void shouldReturnBadRequest_whenUsernameNotFound() throws Exception {
-
-            Mockito.when(authService.deleteUser(Mockito.any()))
-                    .thenThrow(new UsernameNotFoundException("Username not found!"));
-
-            mockMvc.perform(delete("/api/auth/user/testusername")
-                            .with(csrf()))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.statusCode").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.details").exists())
-                    .andExpect(jsonPath("$.timestamp").exists());
-        }
-    }
-
-    @Nested
-    @DisplayName("PUT /api/auth/role")
-    class changeRoleTest {
-        @Test
-        @DisplayName("Return \"Ok 200\" status and user info that was changed when changing user role successfully")
-        void shouldReturnOk_whenChangingRoleSuccessfully() throws Exception {
-
+        @DisplayName("Return \"OK 200\" and jwt token when username and password are valid")
+        void shouldReturnOkWithJwtToken_whenCredentialsAreValid() throws Exception {
             String json = """
                     {
                         "username" : "testusername",
-                        "role" : "SUPPORT"
+                        "password" : "Test1234"
                     }
                     """;
-            UserResponseDto expected = new UserResponseDto(1L,
-                    "TestFN TestLN", "testusername", "SUPPORT");
 
-            Mockito.when(authService.changeRole(Mockito.any()))
-                    .thenReturn(expected);
-            mockMvc.perform(put("/api/auth/role")
+            AuthenticationResponseDto expected = AuthenticationResponseDto.builder()
+                    .jwtToken("jwtToken").build();
+            Mockito.when(authService.authenticate(Mockito.any())).thenReturn(expected);
+
+            mockMvc.perform(post("/api/auth/authenticate")
                             .with(csrf())
-                            .content(json)
-                            .contentType(MediaType.APPLICATION_JSON))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.name").exists())
-                    .andExpect(jsonPath("$.username").exists())
-                    .andExpect(jsonPath("$.role").exists());
+                    .andExpect(jsonPath("$.jwtToken").value("jwtToken"))
+                    .andExpect(jsonPath("$.errors").doesNotExist());
 
+            Mockito.verify(authService).authenticate(Mockito.any());
         }
 
         @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when missing username")
-        void shouldReturnBadRequest_whenMissingUsername() throws Exception{
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code when username is blank")
+        void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception {
             String json = """
                     {
-                        "role" : "SUPPORT"
+                        "username" : "",
+                        "password" : "Test1234"
                     }
                     """;
 
-            mockMvc.perform(put("/api/auth/role")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
+            mockMvc.perform(post("/api/auth/authenticate")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.username").exists())
+                    .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400));
+                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
 
         @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when missing role")
-        void shouldReturnBadRequest_whenMissingRole() throws Exception{
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code when username is null")
+        void shouldReturnBadRequest_whenUsernameIsNull() throws Exception {
+            String json = """
+                    {
+                        "username" : null,
+                        "password" : "Test1234"
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/authenticate")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
+
+            Mockito.verifyNoInteractions(authService);
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" and username error, timestamp, status code when username is missing")
+        void shouldReturnBadRequest_whenUsernameIsMissing() throws Exception {
+            String json = """
+                    {
+                        "password" : "Test1234"
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/authenticate")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
+
+            Mockito.verifyNoInteractions(authService);
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code when password is blank")
+        void shouldReturnBadRequest_whenPasswordIsBlank() throws Exception {
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "password" : ""
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/authenticate")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+
+            Mockito.verifyNoInteractions(authService);
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code when password is null")
+        void shouldReturnBadRequest_whenPasswordIsNull() throws Exception {
+            String json = """
+                    {
+                        "username" : "testusername",
+                        "password" : null
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/authenticate")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+
+            Mockito.verifyNoInteractions(authService);
+        }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" and password error, timestamp, status code when password is missing")
+        void shouldReturnBadRequest_whenPasswordIsMissing() throws Exception {
             String json = """
                     {
                         "username" : "testusername"
                     }
                     """;
 
-            mockMvc.perform(put("/api/auth/role")
+            mockMvc.perform(post("/api/auth/authenticate")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.role").exists())
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400));
-
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when role is blank or space")
-        void shouldReturnBadRequest_whenRoleIsBlank() throws Exception{
-            String json = """
-                    {
-                        "username" : "tester",
-                        "role" : " "
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/role")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.role").exists())
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400));
-
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when username is blank or space")
-        void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception{
-            String json = """
-                    {
-                        "username" : " ",
-                        "role" : "SUPPORT"
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/role")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.username").exists())
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400));
-
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when username not found!")
-        void shouldReturnBadRequest_whenUsernameNotFound() throws Exception{
-            String json = """
-                    {
-                        "username" : "test",
-                        "role" : "SUPPORT"
-                    }
-                    """;
-            Mockito.when(authService.changeRole(Mockito.any()))
-                            .thenThrow(new UsernameNotFoundException("Username not found!"));
-            mockMvc.perform(put("/api/auth/role")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(404))
-                    .andExpect(jsonPath("$.details").exists());
-
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when role change request is other than support or merchant")
-        void shouldReturnBadRequest_whenRoleRequestIsOtherThanSupportOrMerchant() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "role" : "HELPER"
-                    }
-                    """;
-            Mockito.when(authService.changeRole(Mockito.any()))
-                    .thenThrow(new RoleNotAvailableException("Only Support or Merchant role are available!",
-                                                        HttpStatus.BAD_REQUEST));
-            mockMvc.perform(put("/api/auth/role")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
-
-        }
-
-        @Test
-        @DisplayName("Return \"Conflict 409\" when role value is already provided!")
-        void shouldReturnConflict_whenRoleIsAlreadyProvided() throws Exception{
-            String json = """
-                    {
-                        "username" : "test",
-                        "role" : "SUPPORT"
-                    }
-                    """;
-            Mockito.when(authService.changeRole(Mockito.any()))
-                    .thenThrow(new RoleConflictException("test has been provided this role!",
-                            HttpStatus.CONFLICT));
-            mockMvc.perform(put("/api/auth/role")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.error").value("Conflict"))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(409))
-                    .andExpect(jsonPath("$.details").exists());
+                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
 
+            Mockito.verifyNoInteractions(authService);
         }
 
         @Test
-        @DisplayName("Return \"Bad Request 400\" when attempting change role on admin")
-        void shouldReturnBadRequest_whenAttemptingChangeRoleOnAdmin() throws Exception{
+        @DisplayName("Return \"Bad Request 400\" and both username and password errors when both are blank")
+        void shouldReturnBadRequest_whenUsernameAndPasswordAreBothBlank() throws Exception {
             String json = """
                     {
-                        "username" : "test",
-                        "role" : "SUPPORT"
+                        "username" : "",
+                        "password" : ""
                     }
                     """;
-            Mockito.when(authService.changeRole(Mockito.any()))
-                    .thenThrow(new RoleChangeException("This is admin! You cannot make change role on admin.",
-                            HttpStatus.BAD_REQUEST));
-            mockMvc.perform(put("/api/auth/role")
+
+            mockMvc.perform(post("/api/auth/authenticate")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")))
+                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
 
+            Mockito.verifyNoInteractions(authService);
         }
-
     }
 
-    @Nested
-    @DisplayName("PUT /api/auth/access")
-    class activationUserTest{
-        @Test
-        @DisplayName("Return \"Ok 200\" and confirmation when activating user successfully")
-        void shouldReturnOk_whenActivatingUserSuccessfully() throws Exception{
-
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "unlock"
-                    }
-                    """;
-
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenReturn(new StatusResponseDto("User hungnguyen unlocked"));
-            mockMvc.perform(put("/api/auth/access")
-                    .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").exists());
-
-            Mockito.verify(authService).changeUserStatus(Mockito.any());
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when missing username")
-        void shouldReturnBadRequest_whenMissingUsername() throws Exception{
-
-            String json = """
-                    {
-                        "operation" : "unlock"
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/access")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.username").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.timestamp").exists());
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when username is blank")
-        void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception{
-
-            String json = """
-                    {
-                        "username" : " ",
-                        "operation" : "unlock"
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.username").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.timestamp").exists());
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when missing operation")
-        void shouldReturnBadRequest_whenMissingOperation() throws Exception{
-
-            String json = """
-                    {
-                        "username" : "testusername"
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.operation").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.timestamp").exists());
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" and error response when operation is blank")
-        void shouldReturnBadRequest_whenOperationIsBlank() throws Exception{
-
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : " "
-                    }
-                    """;
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors.operation").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.timestamp").exists());
-            Mockito.verifyNoInteractions(authService);
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when username not found")
-        void shouldReturnBadRequest_whenUsernameNotFound() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "unlock"
-                    }
-                    """;
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenThrow(new UsernameNotFoundException("Username not found!"));
-
-            mockMvc.perform(put("/api/auth/access")
-                    .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(404))
-                    .andExpect(jsonPath("$.details").exists());
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when attempting deactivate admin")
-        void shouldReturnBadRequest_whenDeactivatingAdmin() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "lock"
-                    }
-                    """;
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenThrow(new UserStatusChangeException("You cannot deactivate admin!",
-                            HttpStatus.BAD_REQUEST));
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when attempting activate an active user")
-        void shouldReturnBadRequest_whenActivatedAnActiveUser() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "unlock"
-                    }
-                    """;
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenThrow(new UserStatusChangeException("User testusername has already been activated!",
-                            HttpStatus.BAD_REQUEST));
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when attempting deactivate an inactive user")
-        void shouldReturnBadRequest_whenDeactivatedAnInactiveUser() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "lock"
-                    }
-                    """;
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenThrow(new UserStatusChangeException("User testusername had already been deactivated!",
-                            HttpStatus.BAD_REQUEST));
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
-        }
-
-        @Test
-        @DisplayName("Return \"Bad Request 400\" when providing invalid operation")
-        void shouldReturnBadRequest_whenProvidingInvalidOperation() throws Exception{
-            String json = """
-                    {
-                        "username" : "testusername",
-                        "operation" : "set"
-                    }
-                    """;
-            Mockito.when(authService.changeUserStatus(Mockito.any()))
-                    .thenThrow(new InvalidOperationChangeException("Invalid Operation!",
-                            HttpStatus.BAD_REQUEST));
-
-            mockMvc.perform(put("/api/auth/access")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("Bad Request"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.statusCode").value(400))
-                    .andExpect(jsonPath("$.details").exists());
-        }
-
-    }
 }
