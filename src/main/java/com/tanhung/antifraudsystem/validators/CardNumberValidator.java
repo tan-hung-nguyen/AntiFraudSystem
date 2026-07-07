@@ -2,7 +2,7 @@ package com.tanhung.antifraudsystem.validators;
 
 public interface CardNumberValidator {
     static boolean isValidCardNumber(String number){
-
+        if(number.isBlank() || number.length() != 16) return false;
         int sum = 0;
         int checkNum = number.charAt(number.length() - 1) - '0';
         boolean alternate = true;
