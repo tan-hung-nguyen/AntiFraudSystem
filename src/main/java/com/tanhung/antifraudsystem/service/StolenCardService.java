@@ -23,7 +23,7 @@ public class StolenCardService {
 
     public StolenCard addCard(StolenCardNumberRequestDto stolenCard){
         String cardNumber = stolenCard.getCardNumber();
-        if(stolenCardValidator.isStolenCard(cardNumber)){
+        if(isStolenCard(cardNumber)){
             throw new StolenCardConflictException(stolenCard.getCardNumber() + " already exists in the stolen card list!");
         }
         StolenCard card = stolenCardMapper.toEntity(stolenCard);
@@ -31,12 +31,15 @@ public class StolenCardService {
     }
 
     public void deleteCard(String cardNumber){
-        if(stolenCardValidator.isStolenCard(cardNumber)){
+        if(!isStolenCard(cardNumber)){
             throw new StolenCardNumberNotFoundException(cardNumber + " not found!");
         }
         stolenCardRepo.deleteStolenCardByCardNumber(cardNumber);
     }
 
+    private boolean isStolenCard(String cardNumber){
+        return stolenCardValidator.isStolenCard(cardNumber);
+    }
 
     public StolenCardResponseDto convertToDto(StolenCard stolenCard){
         return stolenCardMapper.toDto(stolenCard);
