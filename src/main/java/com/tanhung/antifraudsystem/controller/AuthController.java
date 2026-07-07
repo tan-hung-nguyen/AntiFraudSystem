@@ -21,11 +21,9 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserAdminService userAdminService;
     @Autowired
-    public AuthController(AuthService service, UserAdminService userAdminService){
+    public AuthController(AuthService service){
         this.authService = service;
-        this.userAdminService = userAdminService;
     }
 
     @PostMapping("/register")
@@ -39,32 +37,6 @@ public class AuthController {
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponseDto> authenticateUser(@RequestBody @Valid AuthenticationRequestDto request){
         AuthenticationResponseDto response = authService.authenticate(request);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/list")
-    public ResponseEntity<List<UserResponseDto>> getAllUsers(){
-        List<UserResponseDto> users = userAdminService.getAllUsers();
-        return ResponseEntity.ok(users);
-    }
-
-    @DeleteMapping("/user/{username}")
-    public ResponseEntity<DeleteStatusResponseDto> deleteUserByUsername(@PathVariable
-                                                                            @NotNull(message = "Username must not be null")
-                                                                            String username){
-        DeleteStatusResponseDto deletedUser = userAdminService.deleteUser(username);
-        return ResponseEntity.ok(deletedUser);
-    }
-
-    @PutMapping("/role")
-    public ResponseEntity<UserResponseDto> changeUserRole(@RequestBody @Valid UserRoleChangeRequestDto request){
-        UserResponseDto responseDto = userAdminService.changeRole(request);
-        return ResponseEntity.ok(responseDto);
-    }
-
-    @PutMapping("/access")
-    public ResponseEntity<StatusResponseDto> changeUserActiveStatus(@RequestBody @Valid UserAccessChangeRequestDto request){
-        StatusResponseDto response = userAdminService.changeUserStatus(request);
         return ResponseEntity.ok(response);
     }
 
