@@ -21,16 +21,8 @@ public class SuspiciousIpAdminService {
         if(ipAddress == null){
             throw new IPAddressNullException("IP object cannot be null!");
         }
-        SuspiciousIPAddress ip = proceedAddSuspiciousIp(ipAddress);
-        return buildIpResponse(ip);
-    }
-
-    private SuspiciousIPAddress proceedAddSuspiciousIp(SuspiciousIpRequestDto ipAddress){
-        return suspiciousIpService.addIp(ipAddress);
-    }
-
-    private IPResponseDto buildIpResponse(SuspiciousIPAddress ipAddress){
-        return suspiciousIpService.convertToDto(ipAddress);
+        SuspiciousIPAddress ip = suspiciousIpService.addIp(ipAddress);
+        return suspiciousIpService.convertToDto(ip);
     }
 
     @Transactional
