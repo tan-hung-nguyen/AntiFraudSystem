@@ -31,7 +31,7 @@ public class SuspiciousIpService {
     }
 
     public void deleteIp(String ip){
-        if(suspiciousIpValidator.isSuspiciousIp(ip)){
+        if(!suspiciousIpValidator.isSuspiciousIp(ip)){
             throw new IPAddressNotFoundException(ip + " not found!");
         }
         suspiciousIPRepo.deleteByIpAddress(ip);
