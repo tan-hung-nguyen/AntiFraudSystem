@@ -4,12 +4,9 @@ import com.tanhung.antifraudsystem.dto.request.AuthenticationRequestDto;
 import com.tanhung.antifraudsystem.dto.request.UserAccessChangeRequestDto;
 import com.tanhung.antifraudsystem.dto.request.UserRoleChangeRequestDto;
 import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequestDto;
-import com.tanhung.antifraudsystem.dto.response.AuthenticationResponseDto;
-import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
-import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
-import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponseDto;
-import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
+import com.tanhung.antifraudsystem.dto.response.*;
 import com.tanhung.antifraudsystem.service.AuthService;
+import com.tanhung.antifraudsystem.service.UserAdminService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +21,11 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserAdminService userAdminService;
     @Autowired
-    public AuthController(AuthService service){
-        authService = service;
+    public AuthController(AuthService service, UserAdminService userAdminService){
+        this.authService = service;
+        this.userAdminService = userAdminService;
     }
 
     @PostMapping("/register")
@@ -45,7 +44,7 @@ public class AuthController {
 
     @GetMapping("/list")
     public ResponseEntity<List<UserResponseDto>> getAllUsers(){
-        List<UserResponseDto> users = authService.getAllUsers();
+        List<UserResponseDto> users = userAdminService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
@@ -53,19 +52,19 @@ public class AuthController {
     public ResponseEntity<DeleteStatusResponseDto> deleteUserByUsername(@PathVariable
                                                                             @NotNull(message = "Username must not be null")
                                                                             String username){
-        DeleteStatusResponseDto deletedUser = authService.deleteUser(username);
+        DeleteStatusResponseDto deletedUser = userAdminService.deleteUser(username);
         return ResponseEntity.ok(deletedUser);
     }
 
     @PutMapping("/role")
     public ResponseEntity<UserResponseDto> changeUserRole(@RequestBody @Valid UserRoleChangeRequestDto request){
-        UserResponseDto responseDto = authService.changeRole(request);
+        UserResponseDto responseDto = userAdminService.changeRole(request);
         return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping("/access")
     public ResponseEntity<StatusResponseDto> changeUserActiveStatus(@RequestBody @Valid UserAccessChangeRequestDto request){
-        StatusResponseDto response = authService.changeUserStatus(request);
+        StatusResponseDto response = userAdminService.changeUserStatus(request);
         return ResponseEntity.ok(response);
     }
 
