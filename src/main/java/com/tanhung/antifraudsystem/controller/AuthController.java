@@ -7,16 +7,17 @@ import com.tanhung.antifraudsystem.dto.request.UserRegistrationRequestDto;
 import com.tanhung.antifraudsystem.dto.response.AuthenticationResponseDto;
 import com.tanhung.antifraudsystem.dto.response.DeleteStatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
+import com.tanhung.antifraudsystem.dto.response.UserRegistrationResponseDto;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.service.AuthService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,10 +30,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> registerUser(
+    public ResponseEntity<UserRegistrationResponseDto> registerUser(
             @RequestBody @Valid UserRegistrationRequestDto userRegistrationRequestDto){
 
-        Map<String, Object> res = authService.register(userRegistrationRequestDto);
+        UserRegistrationResponseDto res = authService.register(userRegistrationRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
@@ -49,7 +50,9 @@ public class AuthController {
     }
 
     @DeleteMapping("/user/{username}")
-    public ResponseEntity<DeleteStatusResponseDto> deleteUserByUsername(@PathVariable String username){
+    public ResponseEntity<DeleteStatusResponseDto> deleteUserByUsername(@PathVariable
+                                                                            @NotNull(message = "Username must not be null")
+                                                                            String username){
         DeleteStatusResponseDto deletedUser = authService.deleteUser(username);
         return ResponseEntity.ok(deletedUser);
     }
