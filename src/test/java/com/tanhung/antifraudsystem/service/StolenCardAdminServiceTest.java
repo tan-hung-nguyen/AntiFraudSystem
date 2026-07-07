@@ -94,13 +94,13 @@ class StolenCardAdminServiceTest {
         }
 
         @Test
-        @DisplayName("Should propagate CardNumberNullException without touching the service when the card number field is null")
-        void shouldPropagateCardNumberNullException_whenCardNumberFieldIsNull() {
+        @DisplayName("Should propagate InvalidCardNumberException without touching the service when the card number field is null")
+        void shouldPropagateInvalidCardNumberException_whenCardNumberFieldIsNull() {
             StolenCardNumberRequestDto requestWithNullCardNumber = StolenCardNumberRequestDto.builder()
                     .cardNumber(NULL_CARD_NUMBER)
                     .build();
 
-            assertThrows(CardNumberNullException.class,
+            assertThrows(InvalidCardNumberException.class,
                     () -> stolenCardAdminService.addStolenCardNumber(requestWithNullCardNumber));
 
             Mockito.verifyNoInteractions(stolenCardService);
@@ -151,9 +151,9 @@ class StolenCardAdminServiceTest {
         }
 
         @Test
-        @DisplayName("Should throw StolenCardNullException without touching the service when the card number is null")
-        void shouldThrowStolenCardNullException_whenCardNumberIsNull() {
-            StolenCardNullException exception = assertThrows(StolenCardNullException.class,
+        @DisplayName("Should throw InvalidCardNumberException without touching the service when the card number is null")
+        void shouldThrowInvalidCardNumberException_whenCardNumberIsNull() {
+            InvalidCardNumberException exception = assertThrows(InvalidCardNumberException.class,
                     () -> stolenCardAdminService.deleteStolenCardNumber(NULL_CARD_NUMBER));
 
             assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -161,12 +161,13 @@ class StolenCardAdminServiceTest {
         }
 
         @Test
-        @DisplayName("Should still delegate to the service and build a status message when the card number is empty")
+        @DisplayName("Should throw InvalidCardNumberException without touching service when the card number is empty")
         void shouldDelegateToServiceAndBuildStatusMessage_whenCardNumberIsEmpty() {
-            StatusResponseDto actualResponse = stolenCardAdminService.deleteStolenCardNumber(EMPTY_CARD_NUMBER);
 
-            assertEquals("Card " + EMPTY_CARD_NUMBER + " successfully removed!", actualResponse.getStatus());
-            Mockito.verify(stolenCardService).deleteCard(EMPTY_CARD_NUMBER);
+            InvalidCardNumberException exception = assertThrows(InvalidCardNumberException.class,
+                    () -> stolenCardAdminService.deleteStolenCardNumber(EMPTY_CARD_NUMBER));
+            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+            Mockito.verifyNoInteractions(stolenCardService);
         }
 
         @Test

@@ -5,6 +5,7 @@ import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.StolenCardResponseDto;
 import com.tanhung.antifraudsystem.exception.InvalidCardNumberException;
 import com.tanhung.antifraudsystem.exception.StolenCardNullException;
+import com.tanhung.antifraudsystem.exception.CardNumberNullException;
 import com.tanhung.antifraudsystem.model.StolenCard;
 import com.tanhung.antifraudsystem.validators.CardNumberValidator;
 import jakarta.transaction.Transactional;
@@ -28,10 +29,18 @@ public class StolenCardAdminService {
     }
 
     private StolenCard proceedAddStolenCardNumber(StolenCardNumberRequestDto requestCard){
-        if(!CardNumberValidator.isValidCardNumber(requestCard.getCardNumber())){
-            throw new InvalidCardNumberException(requestCard.getCardNumber() + " card number is invalid!");
-        }
+        checkCardNumberValid(requestCard.getCardNumber());
         return stolenCardService.addCard(requestCard);
+    }
+
+    private void checkCardNumberValid(String cardNumber){
+        if(!isCardNumberValid(cardNumber)){
+            throw new InvalidCardNumberException(cardNumber + " card number is invalid!");
+        }
+    }
+
+    private boolean isCardNumberValid(String requestCardNumber){
+        return CardNumberValidator.isValidCardNumber(requestCardNumber);
     }
 
     private StolenCardResponseDto buildStolenCardResponse(StolenCard stolenCard){
@@ -40,9 +49,7 @@ public class StolenCardAdminService {
 
     @Transactional
     public StatusResponseDto deleteStolenCardNumber(String cardNumber){
-        if(cardNumber == null) {
-            throw new StolenCardNullException("Your card number must not be null!");
-        }
+        checkCardNumberValid(cardNumber);
         return proceedDeleteStolenCardNumber(cardNumber);
     }
 

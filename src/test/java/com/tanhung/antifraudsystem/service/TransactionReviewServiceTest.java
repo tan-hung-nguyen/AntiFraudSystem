@@ -142,12 +142,12 @@ class TransactionReviewServiceTest {
         }
 
         @Test
-        @DisplayName("Should propagate CardNumberNullException without touching the region or " +
+        @DisplayName("Should propagate InvalidCardNumberException without touching the region or " +
                 "transaction manager when the card number is null")
-        void shouldPropagateCardNumberNullException_whenCardNumberIsNull() {
+        void shouldPropagateInvalidCardNumberException_whenCardNumberIsNull() {
             validRequest.setCardNumber(NULL_CARD_NUMBER);
 
-            assertThrows(CardNumberNullException.class,
+            assertThrows(InvalidCardNumberException.class,
                     () -> transactionReviewService.reviewRequest(validRequest));
 
             Mockito.verifyNoInteractions(regionRepo, transactionManager);

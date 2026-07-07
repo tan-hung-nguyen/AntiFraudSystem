@@ -2,6 +2,7 @@ package com.tanhung.antifraudsystem.service;
 
 import com.tanhung.antifraudsystem.dto.request.TransactionRequestDto;
 import com.tanhung.antifraudsystem.dto.response.ActionResponseDto;
+import com.tanhung.antifraudsystem.exception.CardNumberNullException;
 import com.tanhung.antifraudsystem.exception.InvalidCardNumberException;
 import com.tanhung.antifraudsystem.exception.InvalidRegionException;
 import com.tanhung.antifraudsystem.model.Region;
@@ -24,18 +25,22 @@ public class TransactionReviewService {
     }
 
     private void validateCardNumberIsValid(String cardNumber){
-        if(!CardNumberValidator.isValidCardNumber(cardNumber)){
+        if(!isValidCardNumber(cardNumber)){
             throw new InvalidCardNumberException("Card number is invalid!");
         }
     }
 
+    private boolean isValidCardNumber(String cardNumber){
+        return CardNumberValidator.isValidCardNumber(cardNumber);
+    }
+
     private ActionResponseDto proceedTransactionRequest(TransactionRequestDto requestDto){
         Transaction transaction = transactionManager.convertToEntity(requestDto);
-        Region region = findRegion(requestDto.getRegion());
-        if(region == null){
+        Region foundRegion = findRegion(requestDto.getRegion());
+        if(foundRegion == null){
             throw new InvalidRegionException(requestDto.getRegion() + " is invalid!");
         }
-        transaction.setRegion(region);
+        transaction.setRegion(foundRegion);
         ActionResponseDto response = transactionManager.proceedTransaction(transaction);
         transactionManager.saveTransaction(transaction);
         return response;
