@@ -49,7 +49,7 @@ public class TransactionValidator {
 
     private Optional<RuleViolation> checkAmount(BigDecimal amount){
         if(amount.compareTo(new BigDecimal(200)) <= 0){
-            return Optional.of(new RuleViolation(TransactionResult.ALLOWED, "none"));
+            return Optional.empty();
         } else if(amount.compareTo(new BigDecimal(1500)) <= 0) {
             return Optional.of(new RuleViolation(TransactionResult.MANUAL_PROCESSING, "amount"));
         } else {

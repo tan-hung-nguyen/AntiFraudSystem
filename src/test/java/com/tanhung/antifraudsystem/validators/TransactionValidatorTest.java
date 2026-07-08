@@ -162,7 +162,10 @@ class TransactionValidatorTest {
         void shouldReturnProhibited_whenOnlyIpAddressIsSuspicious() {
             Transaction transaction = buildTransaction(AMOUNT_BELOW_ALLOWED_BOUNDARY);
             RuleViolation suspiciousIpViolation = new RuleViolation(TransactionResult.PROHIBITED, IP_CAUSE);
-            stubValidators(transaction, Optional.empty(), Optional.of(suspiciousIpViolation), Optional.empty(), Optional.empty());
+            stubValidators(transaction, Optional.empty(),
+                    Optional.of(suspiciousIpViolation),
+                    Optional.empty(),
+                    Optional.empty());
 
             ActionResponseDto actualResponse = transactionValidator.validate(transaction);
 
@@ -175,7 +178,10 @@ class TransactionValidatorTest {
         void shouldReturnManualProcessing_whenOnlyIpCorrelationReportsManualProcessing() {
             Transaction transaction = buildTransaction(AMOUNT_BELOW_ALLOWED_BOUNDARY);
             RuleViolation ipCorrelationViolation = new RuleViolation(TransactionResult.MANUAL_PROCESSING, IP_CORRELATION_CAUSE);
-            stubValidators(transaction, Optional.empty(), Optional.empty(), Optional.of(ipCorrelationViolation), Optional.empty());
+            stubValidators(transaction, Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(ipCorrelationViolation),
+                    Optional.empty());
 
             ActionResponseDto actualResponse = transactionValidator.validate(transaction);
 
@@ -188,7 +194,10 @@ class TransactionValidatorTest {
         void shouldReturnProhibited_whenOnlyRegionCorrelationReportsProhibited() {
             Transaction transaction = buildTransaction(AMOUNT_BELOW_ALLOWED_BOUNDARY);
             RuleViolation regionCorrelationViolation = new RuleViolation(TransactionResult.PROHIBITED, REGION_CORRELATION_CAUSE);
-            stubValidators(transaction, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(regionCorrelationViolation));
+            stubValidators(transaction, Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(regionCorrelationViolation));
 
             ActionResponseDto actualResponse = transactionValidator.validate(transaction);
 
@@ -220,7 +229,10 @@ class TransactionValidatorTest {
             Transaction transaction = buildTransaction(AMOUNT_BELOW_ALLOWED_BOUNDARY);
             RuleViolation stolenCardViolation = new RuleViolation(TransactionResult.PROHIBITED, CARD_NUMBER_CAUSE);
             RuleViolation ipCorrelationViolation = new RuleViolation(TransactionResult.MANUAL_PROCESSING, IP_CORRELATION_CAUSE);
-            stubValidators(transaction, Optional.of(stolenCardViolation), Optional.empty(), Optional.of(ipCorrelationViolation), Optional.empty());
+            stubValidators(transaction, Optional.of(stolenCardViolation),
+                    Optional.empty(),
+                    Optional.of(ipCorrelationViolation),
+                    Optional.empty());
 
             ActionResponseDto actualResponse = transactionValidator.validate(transaction);
 
