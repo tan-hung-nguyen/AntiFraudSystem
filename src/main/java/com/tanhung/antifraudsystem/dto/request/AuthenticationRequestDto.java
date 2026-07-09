@@ -1,18 +1,19 @@
 package com.tanhung.antifraudsystem.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Builder
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthenticationRequestDto {
-    @NotBlank
-    private String username;
 
-    @NotBlank
+    @NotBlank(message = "Username must not be blank!")
+    private String username;
+    @NotBlank(message = "Password must not be blank!")
     private String password;
 }
 
