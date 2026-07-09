@@ -1,6 +1,7 @@
 package com.tanhung.antifraudsystem.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -27,9 +28,11 @@ public class TransactionRequestDto {
         @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits, no spaces!")
         private String cardNumber;
 
-        @NotNull
+        @NotBlank(message = "Region must not be null nor blank!")
         private String region;
 
-        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
+        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+                message = "Date must be in format yyyy-MM-ddTHH:mm:ss")
+        @NotNull(message = "Date must not be null!")
         private String date;
 }
