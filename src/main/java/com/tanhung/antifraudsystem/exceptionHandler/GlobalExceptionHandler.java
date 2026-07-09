@@ -21,11 +21,15 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponseDto> handleJacksonException(Throwable cause){
-        ErrorResponseDto error = new ErrorResponseDto();
-        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        error.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        error.setTimestamp(Instant.now());
-        if(cause instanceof UnrecognizedPropertyException e){
+        ErrorResponseDto error = ErrorResponseDto
+                                .builder()
+                                .statusCode(HttpStatus.BAD_REQUEST.value())
+                                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                                .timestamp(Instant.now())
+                                .build();
+        if(cause == null || cause.getMessage() == null){
+            error.setDetails("Required request body is missing!");
+        } else if(cause instanceof UnrecognizedPropertyException e){
             error.setDetails("Unknown field: " + e.getPropertyName());
         } else if (cause instanceof InvalidFormatException e){
             error.setDetails(e.getPath().getFirst().getPropertyName() + ": Invalid format!");
@@ -37,12 +41,13 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponseDto> getErrorResponse(RuntimeException e, HttpStatus status){
-        ErrorResponseDto error = new ErrorResponseDto();
-        error.setError(status.getReasonPhrase());
-        error.setStatusCode(status.value());
-        error.setTimestamp(Instant.now());
-        error.setDetails(e.getMessage());
-
+        ErrorResponseDto error = ErrorResponseDto
+                                .builder()
+                                .statusCode(status.value())
+                                .error(status.getReasonPhrase())
+                                .details(e.getMessage())
+                                .timestamp(Instant.now())
+                                .build();
         return ResponseEntity.status(status).body(error);
     }
 
