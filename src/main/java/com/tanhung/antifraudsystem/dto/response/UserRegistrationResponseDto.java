@@ -15,5 +15,5 @@ public class UserRegistrationResponseDto {
     private String name;
     private String username;
     private String role;
-    private String token;
+    private String jwtToken;
 }

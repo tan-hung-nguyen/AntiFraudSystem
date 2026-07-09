@@ -19,10 +19,4 @@ public class ErrorResponseDto {
     private String error;
     private String details;
     private Instant timestamp;
-
-    public ErrorResponseDto(Integer statusCode, String error, String details){
-        this.statusCode = statusCode;
-        this.error = error;
-        this.details = details;
-    }
 }
