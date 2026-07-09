@@ -1,3 +1,10 @@
 INSERT INTO roles(role_value) VALUES ( 'ADMINISTRATOR');
 INSERT INTO roles(role_value) VALUES ( 'MERCHANT');
 INSERT INTO roles(role_value) VALUES ( 'SUPPORT');
+INSERT INTO regions(code, description) VALUES ('EAP', 'East Asia and Pacific');
+INSERT INTO regions(code, description) VALUES ('ECA', 'Europe and Central Asia');
+INSERT INTO regions(code, description) VALUES ('HIC', 'High-Income countries');
+INSERT INTO regions(code, description) VALUES ('LAC', 'Latin America and the Caribbean');
+INSERT INTO regions(code, description) VALUES ('MENA', 'The Middle East and North Africa');
+INSERT INTO regions(code, description) VALUES ('SA', 'South Asia');
+INSERT INTO regions(code, description) VALUES ('SSA', 'Sub-Saharan Africa');
