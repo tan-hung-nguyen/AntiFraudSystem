@@ -103,6 +103,18 @@ class UserAdminControllerTest {
                     .andExpect(jsonPath("$.details").exists())
                     .andExpect(jsonPath("$.timestamp").exists());
         }
+
+        @Test
+        @DisplayName("Return \"Bad Request 400\" when username is blank")
+        void shouldReturnBadRequest_whenUsernameIsBlank() throws Exception {
+            mockMvc.perform(delete("/api/auth/user/     ")
+                            .with(csrf()))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.statusCode").value(400))
+                    .andExpect(jsonPath("$.error").value("Bad Request"))
+                    .andExpect(jsonPath("$.details").exists())
+                    .andExpect(jsonPath("$.timestamp").exists());
+        }
     }
 
     @Nested
