@@ -1,6 +1,6 @@
 package com.tanhung.antifraudsystem;
 
-import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
+import com.tanhung.antifraudsystem.dto.response.ErrorResponseDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +26,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
 
-        ErrorResponse error = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),
+        ErrorResponseDto error = new ErrorResponseDto(HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                 "Failed to authenticate your credentials!",
                 Instant.now());

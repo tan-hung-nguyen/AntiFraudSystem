@@ -1,6 +1,6 @@
 package com.tanhung.antifraudsystem;
 
-import com.tanhung.antifraudsystem.dto.response.ErrorResponse;
+import com.tanhung.antifraudsystem.dto.response.ErrorResponseDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +24,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
 
-        ErrorResponse error = new ErrorResponse(HttpServletResponse.SC_FORBIDDEN,
+        ErrorResponseDto error = new ErrorResponseDto(HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
                 "You do not have permission to access this resource!",
                 Instant.now());

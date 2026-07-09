@@ -45,12 +45,13 @@ public class SecurityConfig {
                 .exceptionHandling(denied ->
                         denied.accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(requests-> requests
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/authenticate").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/auth/user/*").hasAuthority("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.PUT, "/api/auth/access", "/api/auth/role").hasAuthority("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/api/auth/list").hasAnyAuthority("ADMINISTRATOR","SUPPORT")
+                        .requestMatchers("/api/antifraud/suspicious-ip/**", "/api/antifraud/stolencard/**").hasAnyAuthority("ADMINISTRATOR","SUPPORT")
                         .requestMatchers(HttpMethod.POST,"/api/antifraud/transaction").hasAuthority("MERCHANT")
-                        .requestMatchers("/api/antifraud/suspicous-ip", "/api/antifraud/stolencard").hasAuthority("SUPPORT"))
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/authenticate").permitAll()
+                        .anyRequest().denyAll())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
