@@ -1028,7 +1028,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.username").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1050,7 +1050,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.username").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1071,7 +1071,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.username").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1093,7 +1093,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.password").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1115,7 +1115,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.password").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1136,7 +1136,7 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.password").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
@@ -1158,8 +1158,8 @@ class AuthControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.statusCode").value(400))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.errors.username").value(containsString("null nor blank")))
-                    .andExpect(jsonPath("$.errors.password").value(containsString("null nor blank")));
+                    .andExpect(jsonPath("$.errors.username").value(containsString("blank")))
+                    .andExpect(jsonPath("$.errors.password").value(containsString("blank")));
 
             Mockito.verifyNoInteractions(authService);
         }
