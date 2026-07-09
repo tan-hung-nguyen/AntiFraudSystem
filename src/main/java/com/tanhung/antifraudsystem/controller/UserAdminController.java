@@ -7,15 +7,18 @@ import com.tanhung.antifraudsystem.dto.response.StatusResponseDto;
 import com.tanhung.antifraudsystem.dto.response.UserResponseDto;
 import com.tanhung.antifraudsystem.service.UserAdminService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
+@Validated
 public class UserAdminController {
     private final UserAdminService userAdminService;
 
@@ -31,7 +34,7 @@ public class UserAdminController {
 
     @DeleteMapping("/user/{username}")
     public ResponseEntity<DeleteStatusResponseDto> deleteUserByUsername(@PathVariable
-                                                                        @NotNull(message = "Username must not be null")
+                                                                        @NotBlank(message = "Username must not be blank!")
                                                                         String username){
         DeleteStatusResponseDto deletedUser = userAdminService.deleteUser(username);
         return ResponseEntity.ok(deletedUser);

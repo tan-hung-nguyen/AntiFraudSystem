@@ -38,7 +38,7 @@ public class StolenCardController {
     public ResponseEntity<StatusResponseDto> deleteStolenCardNumber(
             @PathVariable
             @Pattern(regexp = "^\\d{16}$", message = "Card number must be exactly 16 digits")
-            @NotBlank(message = "Card number must not be null nor blank") String number){
+            @NotBlank(message = "Card number must not be blank") String number){
 
         StatusResponseDto response = stolenCardAdminService.deleteStolenCardNumber(number);
         return ResponseEntity.ok(response);
