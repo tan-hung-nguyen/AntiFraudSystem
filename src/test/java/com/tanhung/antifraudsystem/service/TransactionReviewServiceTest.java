@@ -3,7 +3,6 @@ package com.tanhung.antifraudsystem.service;
 import com.tanhung.antifraudsystem.dto.request.TransactionRequestDto;
 import com.tanhung.antifraudsystem.dto.response.ActionResponseDto;
 import com.tanhung.antifraudsystem.enums.TransactionResult;
-import com.tanhung.antifraudsystem.exception.CardNumberNullException;
 import com.tanhung.antifraudsystem.exception.InvalidCardNumberException;
 import com.tanhung.antifraudsystem.exception.InvalidRegionException;
 import com.tanhung.antifraudsystem.model.Region;
