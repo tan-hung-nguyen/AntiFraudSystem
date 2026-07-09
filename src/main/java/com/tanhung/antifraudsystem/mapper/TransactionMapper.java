@@ -8,7 +8,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -26,7 +25,7 @@ public interface TransactionMapper {
         try{
             return LocalDateTime.parse(date);
         } catch (DateTimeParseException e){
-            throw new InvalidTransactionDateFormatException("Invalid date format: " + date, HttpStatus.BAD_REQUEST);
+            throw new InvalidTransactionDateFormatException("Invalid date format: " + date);
         }
     }
 }
