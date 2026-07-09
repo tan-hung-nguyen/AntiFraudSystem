@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RegionRepo extends JpaRepository<Region, Integer> {
     boolean existsByCode(String code);
+    Region findByCode(String code);
 }

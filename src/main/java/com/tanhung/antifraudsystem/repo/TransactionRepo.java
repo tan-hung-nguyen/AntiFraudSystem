@@ -25,9 +25,9 @@ public interface TransactionRepo extends JpaRepository<Transaction, Long> {
             @Param("region") String region
             );
 
-    @Query("SELECT DISTINCT t.ip FROM Transaction t " +
+    @Query("SELECT DISTINCT t.ipAddress FROM Transaction t " +
             "WHERE t.cardNumber = :number AND t.date BETWEEN :from AND :to " +
-            "AND t.ip <> :ip")
+            "AND t.ipAddress <> :ip")
     List<String> findDistinctIpsExcluding(
             @Param("number") String number,
             @Param("from") LocalDateTime from,
